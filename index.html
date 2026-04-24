@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yahtzee Trainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Loading optimal policy…</p>
+  </div>
+
+  <div id="app" class="hidden">
+    <header>
+      <h1>🎲 Yahtzee Trainer</h1>
+      <div class="stats">
+        <span id="stat-turn">Turn 1/13</span>
+        <span id="stat-score">Score: 0</span>
+        <span id="stat-accuracy">Accuracy: —</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="game-panel card">
+        <div class="dice-area">
+          <div id="dice-container"></div>
+          <div id="rerolls-label" class="rerolls-label"></div>
+        </div>
+
+        <div id="action-hint" class="action-hint"></div>
+
+        <div class="button-row">
+          <button id="btn-reroll" class="btn btn-primary hidden">Reroll unkept →</button>
+          <button id="btn-continue" class="btn btn-secondary hidden">Continue →</button>
+        </div>
+
+        <div id="feedback-panel" class="feedback-panel hidden"></div>
+      </section>
+
+      <section class="scorecard-panel card">
+        <h2>Scorecard</h2>
+        <div class="scorecard-grid">
+          <div>
+            <h3>Upper Section</h3>
+            <table class="scorecard-table">
+              <tbody id="scorecard-upper"></tbody>
+            </table>
+            <div id="upper-bonus-row" class="bonus-row"></div>
+          </div>
+          <div>
+            <h3>Lower Section</h3>
+            <table class="scorecard-table">
+              <tbody id="scorecard-lower"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="total-row" class="total-row"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
