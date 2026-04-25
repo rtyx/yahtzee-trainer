@@ -4,60 +4,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yahtzee Trainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';</script>
 </head>
 <body>
+
   <div id="loading">
     <div class="spinner"></div>
-    <p>Loading optimal policy…</p>
+    <p class="loading-text">Loading optimal policy…</p>
   </div>
 
   <div id="app" class="hidden">
+
     <header>
-      <h1>🎲 Yahtzee Trainer</h1>
+      <div class="brand">
+        <span class="brand-mark">Yahtzee Trainer</span>
+        <span class="brand-sub">optimal play, explained</span>
+      </div>
+      <button id="btn-restart" class="btn-restart">↺ New game</button>
+      <button id="btn-theme" class="btn-theme">☀</button>
       <div class="stats">
-        <span id="stat-turn">Turn 1/13</span>
-        <span id="stat-score">Score: 0</span>
-        <span id="stat-accuracy">Accuracy: —</span>
+        <div class="stat">
+          <span id="stat-turn-val" class="stat-value">1/13</span>
+          <span class="stat-label">Turn</span>
+        </div>
+        <div class="stat">
+          <span id="stat-score-val" class="stat-value">0</span>
+          <span class="stat-label">Score</span>
+        </div>
+        <div class="stat">
+          <span id="stat-acc-val" class="stat-value">—</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
       </div>
     </header>
 
     <main>
-      <section class="game-panel card">
-        <div class="dice-area">
+
+      <section class="game-panel">
+
+        <div class="dice-section">
           <div id="dice-container"></div>
-          <div id="rerolls-label" class="rerolls-label"></div>
+          <div id="phase-label" class="phase-label"></div>
         </div>
 
-        <div id="action-hint" class="action-hint"></div>
-
-        <div class="button-row">
-          <button id="btn-reroll" class="btn btn-primary hidden">Reroll unkept →</button>
-          <button id="btn-continue" class="btn btn-secondary hidden">Continue →</button>
+        <div class="controls">
+          <button id="btn-reroll" class="btn btn-gold hidden"></button>
+          <button id="btn-continue" class="btn btn-outline hidden">Got it</button>
         </div>
 
-        <div id="feedback-panel" class="feedback-panel hidden"></div>
-      </section>
-
-      <section class="scorecard-panel card">
-        <h2>Scorecard</h2>
-        <div class="scorecard-grid">
-          <div>
-            <h3>Upper Section</h3>
-            <table class="scorecard-table">
-              <tbody id="scorecard-upper"></tbody>
-            </table>
-            <div id="upper-bonus-row" class="bonus-row"></div>
-          </div>
-          <div>
-            <h3>Lower Section</h3>
-            <table class="scorecard-table">
-              <tbody id="scorecard-lower"></tbody>
-            </table>
+        <div id="feedback-wrap" class="feedback-wrap">
+          <div class="feedback-inner">
+            <div id="feedback-panel" class="feedback-panel"></div>
           </div>
         </div>
-        <div id="total-row" class="total-row"></div>
+
+        <div id="turn-history" class="turn-history"></div>
+
       </section>
+
+      <section class="scorecard-panel">
+        <div class="scorecard-head">
+          <span class="scorecard-title">Scorecard</span>
+          <span id="sc-total" class="sc-total-display">0</span>
+        </div>
+        <div id="scorecard-body" class="scorecard-body"></div>
+      </section>
+
     </main>
   </div>
 
