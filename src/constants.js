@@ -6,6 +6,11 @@ export const CAT_NAMES = [
 ];
 
 export const LOWER_ORDER = [13, 14, 6, 7, 9, 10, 8, 12, 11];
+export const SCORECARD_KEY_ORDER = [
+  ['1', 0], ['2', 1], ['3', 2], ['4', 3], ['5', 4],
+  ['6', 5], ['7', 13], ['8', 14], ['9', 6], ['0', 7],
+  ['Q', 9], ['W', 10], ['E', 8], ['R', 12], ['T', 11],
+];
 export const ALL_USED_MASK = (1 << 15) - 1;
 export const UPPER_THRESHOLD = 63;
 export const UPPER_BONUS = 35;

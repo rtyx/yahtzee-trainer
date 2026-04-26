@@ -1,5 +1,5 @@
 import { ALL_USED_MASK, UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
-import { playGameComplete, playRoll, playScoreMark, playVerdict } from './audio.js';
+import { playDieToggle, playGameComplete, playRoll, playScoreMark, playVerdict } from './audio.js';
 import { diceCounts, keptCounts, arraysEqual } from './dice.js';
 import { scoreCategory } from './scoring.js';
 import { computeOptimalKeep, evAfterKeep, bestPlacement, catEV } from './policy.js';
@@ -124,6 +124,47 @@ export function handleKeepSubmit() {
   } else {
     doKeepSubmit();
   }
+}
+
+export function toggleDieKeep(index) {
+  if (state.phase !== 'keep' || state.diceAnimating) return;
+  if (index < 0 || index >= state.kept.length) return;
+
+  state.kept[index] = !state.kept[index];
+  if (state.kept[index]) {
+    if (!state.keptOrder.includes(index)) state.keptOrder.push(index);
+  } else {
+    state.keptOrder = state.keptOrder.filter(i => i !== index);
+  }
+
+  layoutDiceForState();
+  playDieToggle(state.kept[index]);
+  render();
+}
+
+export function keepNextDieByValue(value) {
+  if (state.phase !== 'keep' || state.diceAnimating) return;
+  const index = state.dice.findIndex((dieValue, i) => dieValue === value && !state.kept[i]);
+  if (index === -1) return;
+
+  state.kept[index] = true;
+  if (!state.keptOrder.includes(index)) state.keptOrder.push(index);
+
+  layoutDiceForState();
+  playDieToggle(true);
+  render();
+}
+
+export function clearKeptDice() {
+  if (state.phase !== 'keep' || state.diceAnimating) return;
+  if (!state.kept.some(Boolean)) return;
+
+  state.kept = [false,false,false,false,false];
+  state.keptOrder = [];
+
+  layoutDiceForState();
+  playDieToggle(false);
+  render();
 }
 
 function doKeepSubmit() {

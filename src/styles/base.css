@@ -44,7 +44,7 @@ body {
 .spinner {
   width: 22px;
   height: 22px;
-  border: 1.5px solid var(--rule);
+  border: var(--border-thin) solid var(--rule);
   border-top-color: var(--ink);
   border-radius: 50%;
   animation: spin 0.9s linear infinite;

@@ -19,9 +19,9 @@
   --rule-heavy:  oklch(16% 0.008 50);
   --rule-strong: oklch(35% 0.006 50);
   --border-thin: 1px;
-  --border-mid: 1.5px;
-  --border-heavy: 2px;
-  --border-section: 3px;
+  --border-mid: 1px;
+  --border-heavy: 1px;
+  --border-section: 1px;
 
   /* Handwritten inks — ballpoint pen feel */
   --hand-filled: oklch(19% 0.062 268);
@@ -53,13 +53,13 @@
 
   /* Shadows */
   --shadow-die-rest:
-    0 1.5px 0 var(--rule),
+    0 1px 0 var(--rule),
     0 6px 14px oklch(0% 0 0 / 0.06);
   --shadow-die-hover:
-    0 3px 0 var(--rule),
+    0 1px 0 var(--rule),
     0 10px 20px oklch(0% 0 0 / 0.09);
   --shadow-die-kept:
-    0 1.5px 0 var(--dice-kept-rule),
+    0 1px 0 var(--dice-kept-rule),
     0 6px 14px oklch(0% 0 0 / 0.06);
   --shadow-mini-die: none;
 

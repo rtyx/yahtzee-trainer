@@ -4,6 +4,7 @@ import { loadSavedState } from './src/storage.js';
 import { isSoundEnabled, setSoundEnabled, primeAudio } from './src/audio.js';
 import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from './src/game.js';
 import { render, renderAllGamesHistory } from './src/render.js';
+import { initKeyboardControls } from './src/keyboard.js';
 
 function isUnplayedFirstTurn(saved) {
   return saved
@@ -36,6 +37,7 @@ async function init() {
   document.getElementById('btn-reroll').addEventListener('click', handleKeepSubmit);
   document.getElementById('btn-continue').addEventListener('click', handleContinue);
   document.getElementById('btn-restart').addEventListener('click', restartGame);
+  initKeyboardControls();
   document.addEventListener('pointerdown', primeAudio, { once: true, passive: true, capture: true });
 
   const btnTheme = document.getElementById('btn-theme');

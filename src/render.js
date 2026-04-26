@@ -1,10 +1,9 @@
-import { CAT_NAMES, LOWER_ORDER, UPPER_THRESHOLD, UPPER_BONUS, PIPS } from './constants.js';
-import { playDieToggle } from './audio.js';
+import { CAT_NAMES, LOWER_ORDER, SCORECARD_KEY_ORDER, UPPER_THRESHOLD, UPPER_BONUS, PIPS } from './constants.js';
 import { dieSVG, diceCounts } from './dice.js';
 import { scoreCategory } from './scoring.js';
 import { loadAllGames } from './storage.js';
 // game.js imports this module too — circular is safe since all cross-calls happen at runtime
-import { state, handleScoreClick, startGame } from './game.js';
+import { state, handleScoreClick, startGame, toggleDieKeep } from './game.js';
 
 export function getScorecardBonusState(upperScore) {
   const achieved = upperScore >= UPPER_THRESHOLD;
@@ -49,8 +48,11 @@ function getDoneStamp(accuracy) {
 function handleScorecardRowKeydown(event, cat) {
   if (event.key !== 'Enter' && event.key !== ' ') return;
   event.preventDefault();
+  event.stopPropagation();
   handleScoreClick(cat);
 }
+
+const SCORECARD_KEY_BY_CAT = new Map(SCORECARD_KEY_ORDER.map(([key, cat]) => [cat, key]));
 
 const TRAY_X = [17, 33.5, 50, 66.5, 83];
 const ARENA_SLOTS = [
@@ -125,6 +127,7 @@ export function render() {
   renderFeedback();
   renderScorecard();
   renderTurnHistory();
+  document.dispatchEvent(new CustomEvent('yahtzee:render'));
 }
 
 function renderHeader() {
@@ -146,25 +149,12 @@ function renderDice() {
       die = document.createElement('div');
       die.className = 'die';
       die.dataset.index = i;
-      const toggleDie = () => {
-        if (state.phase !== 'keep' || state.diceAnimating) return;
-        state.kept[i] = !state.kept[i];
-        if (state.kept[i]) {
-          if (!state.keptOrder.includes(i)) state.keptOrder.push(i);
-        } else {
-          state.keptOrder = state.keptOrder.filter(index => index !== i);
-        }
-        layoutDiceForState();
-        playDieToggle(state.kept[i]);
-        renderDice();
-        renderPhaseLabel();
-        renderButtons();
-      };
-      die.addEventListener('click', toggleDie);
+      die.addEventListener('click', () => toggleDieKeep(i));
       die.addEventListener('keydown', (event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        toggleDie();
+        event.stopPropagation();
+        toggleDieKeep(i);
       });
       container.appendChild(die);
     }
@@ -192,7 +182,7 @@ function renderDice() {
       : state.kept[i] ? 'Release this die' : 'Hold this die';
     if (!locked) die.setAttribute('aria-pressed', String(state.kept[i]));
     else die.removeAttribute('aria-pressed');
-    die.innerHTML = dieSVG(value);
+    die.innerHTML = `${dieSVG(value)}${locked ? '' : `<span class="keycap die-keycap">${value}</span>`}`;
   }
 }
 
@@ -231,16 +221,18 @@ function renderButtons() {
 
   if (state.phase === 'ready') {
     btnRoll.classList.remove('hidden');
-    btnRoll.textContent = 'Roll 5 dice';
+    btnRoll.innerHTML = `Roll 5 dice <span class="keycap action-keycap">Space</span>`;
     btnRoll.disabled = state.diceAnimating;
   } else if (state.phase === 'keep') {
     btnRoll.classList.remove('hidden');
     const n = state.kept.filter(Boolean).length;
-    btnRoll.textContent = n === 5 ? 'Score now' : `Roll ${5 - n} ${5 - n === 1 ? 'die' : 'dice'}`;
+    const label = n === 5 ? 'Score now' : `Roll ${5 - n} ${5 - n === 1 ? 'die' : 'dice'}`;
+    btnRoll.innerHTML = `${label} <span class="keycap action-keycap">Space</span>`;
     btnRoll.disabled = state.diceAnimating;
   } else if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) {
     btnCont.className = 'btn btn-gold';
     btnCont.classList.remove('hidden');
+    btnCont.innerHTML = `Got it <span class="keycap action-keycap">Space</span>`;
   }
 }
 
@@ -327,11 +319,14 @@ function renderScorecard() {
       tr.innerHTML = `<td class="sc-name-cell">${CAT_NAMES[cat]}</td><td class="sc-score-cell">${state.scores[cat]}</td>`;
     } else if (canClick) {
       const pot = scoreCategory(counts, cat);
+      const key = SCORECARD_KEY_BY_CAT.get(cat);
       tr.className = 'sc-data-row clickable';
       tr.tabIndex = 0;
       tr.setAttribute('role', 'button');
       tr.setAttribute('aria-label', buildScorecardSelectionLabel(cat, pot));
-      tr.innerHTML = `<td class="sc-name-cell">${CAT_NAMES[cat]}</td><td class="sc-score-cell${pot === 0 ? ' zero' : ''}">${pot}</td>`;
+      tr.innerHTML = `
+        <td class="sc-name-cell"><span class="sc-name-text">${CAT_NAMES[cat]}</span><span class="keycap sc-keycap">${key}</span></td>
+        <td class="sc-score-cell${pot === 0 ? ' zero' : ''}">${pot}</td>`;
       tr.addEventListener('click', () => handleScoreClick(cat));
       tr.addEventListener('keydown', (event) => handleScorecardRowKeydown(event, cat));
     } else {
