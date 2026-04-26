@@ -52,6 +52,71 @@ function handleScorecardRowKeydown(event, cat) {
   handleScoreClick(cat);
 }
 
+const TRAY_X = [17, 33.5, 50, 66.5, 83];
+const ARENA_SLOTS = [
+  { x: 22, y: 24 }, { x: 45, y: 16 }, { x: 70, y: 25 },
+  { x: 34, y: 48 }, { x: 61, y: 50 },
+];
+let layoutSeed = 0;
+let diceAnimationTimer = null;
+
+function makeVisualDie(i) {
+  return { zone: 'tray', x: TRAY_X[i], y: 86, rot: 0, seed: 0 };
+}
+
+function ensureVisualDice() {
+  if (state.visualDice?.length !== 5) {
+    state.visualDice = Array.from({ length: 5 }, (_, i) => makeVisualDie(i));
+    if (state.phase !== 'ready' || !state.readyInTray) {
+      for (let i = 0; i < 5; i++) {
+        Object.assign(state.visualDice[i], state.kept[i] ? trayLayout(i) : arenaLayout(i));
+      }
+    }
+  }
+  if (!state.displayDice || state.displayDice.length !== 5) {
+    state.displayDice = [...state.dice];
+  }
+}
+
+function trayLayout(i) {
+  const orderIndex = state.keptOrder?.indexOf(i) ?? -1;
+  const trayIndex = orderIndex >= 0 ? orderIndex : i;
+  return { zone: 'tray', x: TRAY_X[trayIndex], y: 86, rot: 0 };
+}
+
+function arenaLayout(i) {
+  const slot = ARENA_SLOTS[(i + layoutSeed) % ARENA_SLOTS.length];
+  const wave = layoutSeed + i * 11;
+  const x = Math.max(11, Math.min(89, slot.x + Math.sin(wave * 1.7) * 7));
+  const y = Math.max(12, Math.min(57, slot.y + Math.cos(wave * 1.3) * 6));
+  const rot = Math.round(Math.sin(wave * 2.1) * 26);
+  return { zone: 'arena', x, y, rot };
+}
+
+function placeDie(i, layout) {
+  ensureVisualDice();
+  Object.assign(state.visualDice[i], layout, { seed: state.visualDice[i].seed + 1 });
+}
+
+export function resetDiceToTray() {
+  clearDiceAnimationTimers();
+  ensureVisualDice();
+  for (let i = 0; i < 5; i++) placeDie(i, trayLayout(i));
+}
+
+export function layoutDiceForState() {
+  ensureVisualDice();
+  for (let i = 0; i < 5; i++) {
+    placeDie(i, state.kept[i] ? trayLayout(i) : arenaLayout(i));
+  }
+}
+
+function clearDiceAnimationTimers() {
+  if (diceAnimationTimer) clearTimeout(diceAnimationTimer);
+  diceAnimationTimer = null;
+  document.querySelectorAll('.die.rolling, .die.pre-roll').forEach(el => el.classList.remove('rolling', 'pre-roll'));
+}
+
 export function render() {
   renderHeader();
   renderDice();
@@ -72,32 +137,24 @@ function renderHeader() {
 
 function renderDice() {
   const container = document.getElementById('dice-container');
-  container.innerHTML = '';
-  const locked = state.phase === 'score' || state.phase === 'feedback' || state.phase === 'done';
+  ensureVisualDice();
+  const locked = state.phase === 'ready' || state.phase === 'score' || state.phase === 'feedback' || state.phase === 'done' || state.diceAnimating;
 
   for (let i = 0; i < 5; i++) {
-    const die = document.createElement('div');
-    die.className = 'die';
-    if (state.kept[i]) die.classList.add('kept');
-    if (locked) die.classList.add('no-interact');
-    die.tabIndex = locked ? -1 : 0;
-    die.setAttribute('role', locked ? 'img' : 'button');
-    die.setAttribute(
-      'aria-label',
-      locked
-        ? `Die ${i + 1}: ${state.dice[i]}`
-        : `Die ${i + 1}: ${state.dice[i]}, ${state.kept[i] ? 'held' : 'available to hold'}`,
-    );
-    die.title = locked
-      ? `Die ${i + 1}: ${state.dice[i]}`
-      : state.kept[i] ? 'Release this die' : 'Hold this die';
-    if (!locked) die.setAttribute('aria-pressed', String(state.kept[i]));
-    die.innerHTML = dieSVG(state.dice[i]);
-
-    if (!locked) {
+    let die = container.querySelector(`.die[data-index="${i}"]`);
+    if (!die) {
+      die = document.createElement('div');
+      die.className = 'die';
+      die.dataset.index = i;
       const toggleDie = () => {
-        if (state.phase !== 'keep') return;
+        if (state.phase !== 'keep' || state.diceAnimating) return;
         state.kept[i] = !state.kept[i];
+        if (state.kept[i]) {
+          if (!state.keptOrder.includes(i)) state.keptOrder.push(i);
+        } else {
+          state.keptOrder = state.keptOrder.filter(index => index !== i);
+        }
+        layoutDiceForState();
         playDieToggle(state.kept[i]);
         renderDice();
         renderPhaseLabel();
@@ -109,14 +166,45 @@ function renderDice() {
         event.preventDefault();
         toggleDie();
       });
+      container.appendChild(die);
     }
-    container.appendChild(die);
+
+    const visual = state.visualDice[i];
+    const value = state.displayDice[i] ?? state.dice[i];
+    die.classList.toggle('kept', state.kept[i]);
+    die.classList.toggle('no-interact', locked);
+    die.classList.toggle('in-tray', visual.zone === 'tray');
+    die.classList.toggle('in-arena', visual.zone === 'arena');
+    die.tabIndex = locked ? -1 : 0;
+    die.setAttribute('role', locked ? 'img' : 'button');
+    die.style.setProperty('--die-x', `${visual.x}%`);
+    die.style.setProperty('--die-y', `${visual.y}%`);
+    die.style.setProperty('--die-rot', `${visual.rot}deg`);
+    die.style.zIndex = visual.zone === 'tray' ? 8 + i : 14 + i;
+    die.setAttribute(
+      'aria-label',
+      locked
+        ? `Die ${i + 1}: ${value}`
+        : `Die ${i + 1}: ${value}, ${state.kept[i] ? 'held' : 'available to hold'}`,
+    );
+    die.title = locked
+      ? `Die ${i + 1}: ${value}`
+      : state.kept[i] ? 'Release this die' : 'Hold this die';
+    if (!locked) die.setAttribute('aria-pressed', String(state.kept[i]));
+    else die.removeAttribute('aria-pressed');
+    die.innerHTML = dieSVG(value);
   }
 }
 
 function renderPhaseLabel() {
   const el = document.getElementById('phase-label');
-  if (state.phase === 'score') {
+  if (state.diceAnimating) {
+    el.innerHTML = `<span class="phase-line-a">Dice are settling…</span>`;
+  } else if (state.phase === 'ready') {
+    el.innerHTML = `
+      <span class="phase-line-a">Dice ready</span>
+      <span class="phase-line-b">roll to start this turn</span>`;
+  } else if (state.phase === 'score') {
     el.innerHTML = `<span class="phase-line-a">Final roll — select a category to score</span>`;
   } else if (state.phase === 'done' || state.phase === 'feedback') {
     el.innerHTML = '';
@@ -138,11 +226,18 @@ function renderButtons() {
   btnRoll.classList.add('hidden');
   btnCont.classList.add('hidden');
   btnCont.className = 'btn btn-outline hidden';
+  btnRoll.disabled = false;
+  btnCont.disabled = false;
 
-  if (state.phase === 'keep') {
+  if (state.phase === 'ready') {
+    btnRoll.classList.remove('hidden');
+    btnRoll.textContent = 'Roll 5 dice';
+    btnRoll.disabled = state.diceAnimating;
+  } else if (state.phase === 'keep') {
     btnRoll.classList.remove('hidden');
     const n = state.kept.filter(Boolean).length;
     btnRoll.textContent = n === 5 ? 'Score now' : `Roll ${5 - n} ${5 - n === 1 ? 'die' : 'dice'}`;
+    btnRoll.disabled = state.diceAnimating;
   } else if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) {
     btnCont.className = 'btn btn-gold';
     btnCont.classList.remove('hidden');
@@ -216,7 +311,7 @@ function renderFeedback() {
 
 function renderScorecard() {
   const body    = document.getElementById('scorecard-body');
-  const isScore = state.phase === 'score';
+  const isScore = state.phase === 'score' && !state.diceAnimating;
   document.querySelector('.scorecard-panel')?.classList.toggle('scoring', isScore);
   const counts  = isScore ? diceCounts(state.dice) : null;
 
@@ -339,11 +434,37 @@ export function renderAllGamesHistory() {
 }
 
 export function animateNewDice(prevKept = null) {
-  document.querySelectorAll('.die').forEach((el, i) => {
-    if (!prevKept || !prevKept[i]) {
-      el.classList.remove('rolling');
-      void el.offsetWidth;
-      el.classList.add('rolling');
-    }
+  const rolling = [];
+  for (let i = 0; i < 5; i++) {
+    if (!prevKept || !prevKept[i]) rolling.push(i);
+  }
+  if (rolling.length === 0) return;
+
+  clearDiceAnimationTimers();
+  state.diceAnimating = true;
+  layoutSeed++;
+  rolling.forEach(i => placeDie(i, arenaLayout(i)));
+  renderDice();
+  renderButtons();
+  renderPhaseLabel();
+  renderScorecard();
+
+  rolling.forEach(i => {
+    const el = document.querySelector(`.die[data-index="${i}"]`);
+    if (!el) return;
+    el.classList.remove('rolling');
+    void el.offsetWidth;
+    el.classList.add('rolling');
   });
+
+  diceAnimationTimer = setTimeout(() => {
+    rolling.forEach(i => { state.displayDice[i] = state.dice[i]; });
+    document.querySelectorAll('.die.rolling').forEach(el => el.classList.remove('rolling'));
+    state.diceAnimating = false;
+    diceAnimationTimer = null;
+    renderDice();
+    renderButtons();
+    renderPhaseLabel();
+    renderScorecard();
+  }, 620);
 }

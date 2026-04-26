@@ -5,6 +5,16 @@ import { isSoundEnabled, setSoundEnabled, primeAudio } from './src/audio.js';
 import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from './src/game.js';
 import { render, renderAllGamesHistory } from './src/render.js';
 
+function isUnplayedFirstTurn(saved) {
+  return saved
+    && saved.phase === 'keep'
+    && saved.turn === 1
+    && saved.openMask === 0
+    && saved.decisions === 0
+    && saved.rerollsLeft === 2
+    && saved.kept?.every(k => !k);
+}
+
 async function init() {
   buildDiceEngine();
 
@@ -55,12 +65,19 @@ async function init() {
 
   const saved = loadSavedState();
   if (saved && saved.phase !== 'done') {
+    const restored = isUnplayedFirstTurn(saved)
+      ? { ...saved, phase: 'ready', hasRolled: false }
+      : saved;
     Object.assign(state, {
-      dice: saved.dice, kept: saved.kept, rerollsLeft: saved.rerollsLeft,
-      phase: saved.phase, openMask: saved.openMask, upper: saved.upper,
-      upperCapped: saved.upperCapped, totalScore: saved.totalScore,
-      turn: saved.turn, scores: saved.scores, decisions: saved.decisions,
-      correct: saved.correct, history: saved.history,
+      dice: restored.dice, kept: restored.kept, rerollsLeft: restored.rerollsLeft,
+      keptOrder: restored.keptOrder ?? restored.kept.map((kept, i) => kept ? i : null).filter(i => i != null),
+      phase: restored.phase, openMask: restored.openMask, upper: restored.upper,
+      upperCapped: restored.upperCapped, totalScore: restored.totalScore,
+      turn: restored.turn, scores: restored.scores, decisions: restored.decisions,
+      correct: restored.correct, history: restored.history,
+      displayDice: restored.dice, hasRolled: restored.hasRolled ?? restored.phase !== 'ready',
+      readyInTray: restored.readyInTray ?? restored.phase === 'ready',
+      diceAnimating: false, visualDice: [],
       savedKept: null, feedback: null, pendingCat: null, afterFeedback: null, feedbackToken: 0,
     });
     render();

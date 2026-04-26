@@ -2,20 +2,26 @@ import { K_MULTISETS, K_PROBS } from './dice.js';
 import { scoreCategory } from './scoring.js';
 
 export let V = null;
+let policyCatCount = 15;
 
 export function loadPolicy(data) {
   V = data.V;
+  policyCatCount = Math.round(Math.log2(V.length));
 }
 
 let dpMemo = new Map();
 
+function policyMask(mask) {
+  return mask & ((1 << policyCatCount) - 1);
+}
+
 export function bestPlacementEV(counts, openMask, upper) {
   let best = -Infinity;
-  for (let c = 0; c < 15; c++) {
+  for (let c = 0; c < policyCatCount; c++) {
     if (openMask & (1 << c)) continue;
     const s  = scoreCategory(counts, c);
     const ua = c < 6 ? (c + 1) * counts[c] : 0;
-    const fv = V[openMask | (1 << c)][Math.min(upper + ua, 63)];
+    const fv = V[policyMask(openMask | (1 << c))][Math.min(upper + ua, 63)];
     if (s + fv > best) best = s + fv;
   }
   return best === -Infinity ? 0 : best;
@@ -23,11 +29,11 @@ export function bestPlacementEV(counts, openMask, upper) {
 
 export function bestPlacement(counts, openMask, upper) {
   let best = null;
-  for (let c = 0; c < 15; c++) {
+  for (let c = 0; c < policyCatCount; c++) {
     if (openMask & (1 << c)) continue;
     const s  = scoreCategory(counts, c);
     const ua = c < 6 ? (c + 1) * counts[c] : 0;
-    const ev = s + V[openMask | (1 << c)][Math.min(upper + ua, 63)];
+    const ev = s + V[policyMask(openMask | (1 << c))][Math.min(upper + ua, 63)];
     if (!best || ev > best.ev) best = { cat: c, ev, score: s };
   }
   return best;
@@ -36,7 +42,8 @@ export function bestPlacement(counts, openMask, upper) {
 export function catEV(counts, openMask, upper, cat) {
   const s  = scoreCategory(counts, cat);
   const ua = cat < 6 ? (cat + 1) * counts[cat] : 0;
-  return s + V[openMask | (1 << cat)][Math.min(upper + ua, 63)];
+  const nextMask = cat < policyCatCount ? openMask | (1 << cat) : openMask;
+  return s + V[policyMask(nextMask)][Math.min(upper + ua, 63)];
 }
 
 function keepSubsets(counts) {

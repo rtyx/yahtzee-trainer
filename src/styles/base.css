@@ -75,38 +75,28 @@ body {
 }
 
 @keyframes dice-shake {
-  0% { transform: rotate(0deg) translateY(0); }
-  12% { transform: rotate(-11deg) translateY(-3px); }
-  25% { transform: rotate(13deg) translateY(-7px); }
-  40% { transform: rotate(-10deg) translateY(-5px); }
-  55% { transform: rotate(12deg) translateY(-8px); }
-  68% { transform: rotate(-8deg) translateY(-4px); }
-  80% { transform: rotate(6deg) translateY(-2px); }
-  92% { transform: rotate(-3deg) translateY(-1px); }
-  100% { transform: rotate(0deg) translateY(0); }
+  0% { transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1); }
+  22% { transform: translate(-50%, -56%) rotate(calc(var(--die-rot) - 12deg)) scale(1.01); }
+  48% { transform: translate(-50%, -48%) rotate(calc(var(--die-rot) + 15deg)) scale(0.99); }
+  72% { transform: translate(-50%, -54%) rotate(calc(var(--die-rot) - 8deg)) scale(1); }
+  100% { transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1); }
 }
 
-@keyframes dice-land {
+@keyframes dice-tumble {
   0% {
-    transform: rotate(-18deg) scale(0.48);
-    opacity: 0.1;
+    transform: translate(-50%, -50%) rotate(calc(var(--die-rot) - 34deg)) scale(0.98);
   }
 
-  45% {
-    transform: rotate(5deg) scale(1.11);
-    opacity: 1;
+  34% {
+    transform: translate(-50%, -62%) rotate(calc(var(--die-rot) + 42deg)) scale(1.025);
   }
 
   68% {
-    transform: rotate(-2.5deg) scale(0.96);
-  }
-
-  84% {
-    transform: rotate(1deg) scale(1.02);
+    transform: translate(-50%, -47%) rotate(calc(var(--die-rot) - 14deg)) scale(0.995);
   }
 
   100% {
-    transform: rotate(0deg) scale(1);
+    transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1);
   }
 }
 

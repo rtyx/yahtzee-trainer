@@ -6,14 +6,15 @@ import { computeOptimalKeep, evAfterKeep, bestPlacement, catEV } from './policy.
 import { buildKeepFeedback, buildScoreFeedback } from './feedback.js';
 import { saveGameState, clearSavedState, saveCompletedGame } from './storage.js';
 // render.js imports this module too — circular is safe since all cross-calls happen at runtime
-import { render, renderAllGamesHistory, animateNewDice } from './render.js';
+import { render, renderAllGamesHistory, animateNewDice, resetDiceToTray, layoutDiceForState } from './render.js';
 
 export const state = {
   dice:          [1,1,1,1,1],
   kept:          [false,false,false,false,false],
+  keptOrder:     [],
   savedKept:     null,
   rerollsLeft:   2,
-  phase:         'keep',
+  phase:         'ready',
   openMask:      0,
   upper:         0,
   upperCapped:   0,
@@ -27,6 +28,11 @@ export const state = {
   pendingCat:    null,
   afterFeedback: null,
   feedbackToken: 0,
+  displayDice:   [1,1,1,1,1],
+  hasRolled:     false,
+  readyInTray:   true,
+  diceAnimating: false,
+  visualDice:    [],
 };
 
 const rnd     = () => Math.floor(Math.random() * 6) + 1;
@@ -40,6 +46,7 @@ export function saveState() {
   saveGameState({
     dice:        [...state.dice],
     kept:        [...state.kept],
+    keptOrder:   [...state.keptOrder],
     rerollsLeft: state.rerollsLeft,
     phase:       state.phase === 'feedback' ? (state.pendingCat != null ? 'score' : 'keep') : state.phase,
     openMask:    state.openMask,
@@ -51,6 +58,8 @@ export function saveState() {
     decisions:   state.decisions,
     correct:     state.correct,
     history:     [...state.history],
+    hasRolled:   state.hasRolled,
+    readyInTray: state.readyInTray,
   });
 }
 
@@ -59,33 +68,52 @@ export function startGame() {
     openMask: 0, upper: 0, upperCapped: 0, totalScore: 0,
     turn: 1, scores: new Array(13).fill(null),
     decisions: 0, correct: 0, history: [],
+    diceAnimating: false,
   });
   clearSavedState();
-  startTurn();
+  startTurn({ readyInTray: true, randomizeDice: true });
 }
 
-export function startTurn() {
-  state.dice          = rollAll();
+export function startTurn({ readyInTray = false, randomizeDice = false } = {}) {
+  if (randomizeDice) state.dice = rollAll();
+  state.displayDice   = [...state.dice];
   state.kept          = [false,false,false,false,false];
+  state.keptOrder     = [];
   state.savedKept     = null;
   state.rerollsLeft   = 2;
-  state.phase         = 'keep';
+  state.phase         = 'ready';
   state.feedback      = null;
   state.pendingCat    = null;
   state.afterFeedback = null;
+  state.hasRolled     = false;
+  state.readyInTray   = readyInTray;
+  state.diceAnimating = false;
+  if (readyInTray) resetDiceToTray();
   render();
   saveState();
-  animateNewDice(null);
 }
 
 export function handleKeepSubmit() {
-  if (state.phase !== 'keep') return;
+  if (state.phase === 'ready' && !state.diceAnimating) {
+    playRoll(5);
+    state.dice        = rollAll();
+    state.displayDice = [...state.dice];
+    state.phase       = 'keep';
+    state.hasRolled   = true;
+    state.readyInTray = false;
+    render();
+    saveState();
+    requestAnimationFrame(() => animateNewDice(null));
+    return;
+  }
+
+  if (state.phase !== 'keep' || state.diceAnimating) return;
   const n = state.kept.filter(Boolean).length;
 
   if (n < 5) {
     playRoll(5 - n);
-    const diceEls = [...document.querySelectorAll('.die')];
-    diceEls.forEach((el, i) => { if (!state.kept[i]) el.classList.add('pre-roll'); });
+    const diceEls = [...document.querySelectorAll('.die:not(.kept)')];
+    diceEls.forEach(el => el.classList.add('pre-roll'));
     const btn = document.getElementById('btn-reroll');
     btn.disabled = true;
     setTimeout(() => {
@@ -107,6 +135,8 @@ function doKeepSubmit() {
   if (userN === 5) {
     state.rerollsLeft = 0;
     state.kept        = [false,false,false,false,false];
+    state.keptOrder   = [];
+    layoutDiceForState();
     state.phase       = 'score';
     state.feedback    = null;
     render();
@@ -140,6 +170,7 @@ function proceedAfterKeep() {
 
   if (state.rerollsLeft === 0) {
     state.kept  = [false,false,false,false,false];
+    state.keptOrder = [];
     state.phase = 'score';
   } else {
     state.kept  = [...prevKept];
@@ -153,7 +184,7 @@ function proceedAfterKeep() {
 }
 
 export function handleScoreClick(cat) {
-  if (state.phase !== 'score') return;
+  if (state.phase !== 'score' || state.diceAnimating) return;
   if (state.openMask & (1 << cat)) return;
 
   const counts    = diceCounts(state.dice);
@@ -209,10 +240,10 @@ function proceedAfterScore() {
   playScoreMark();
   state.history.unshift({ turn: state.turn, dice: [...state.dice], cat, score: s });
   state.turn++;
-  startTurn();
+  startTurn({ readyInTray: false, randomizeDice: false });
 }
 
 export function restartGame() {
-  if (state.openMask === 0 && state.turn === 1 && state.phase === 'keep' && state.rerollsLeft === 2) return;
+  if (state.openMask === 0 && state.turn === 1 && state.phase === 'ready' && state.rerollsLeft === 2) return;
   if (confirm('Start a new game? Your current progress will be lost.')) startGame();
 }

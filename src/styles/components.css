@@ -471,30 +471,68 @@
   padding: clamp(1.75rem, 4vw, 3rem) var(--panel-pad-lg) clamp(1.5rem, 3vw, 2.25rem);
 }
 
+#dice-board {
+  --die-size: clamp(58px, 7.5vw, 72px);
+  position: relative;
+  height: clamp(220px, 32vw, 300px);
+  margin-bottom: 1.25rem;
+  isolation: isolate;
+  contain: layout paint;
+}
+
+#dice-arena {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+#held-dice-tray {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  border-top: 0;
+  background: transparent;
+  opacity: 0.75;
+}
+
+.tray-label {
+  display: none;
+}
+
 #dice-container {
-  display: flex;
-  gap: var(--dice-gap);
-  justify-content: center;
-  margin-bottom: 1.625rem;
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .die {
-  width: clamp(58px, 7.5vw, 72px);
-  height: clamp(58px, 7.5vw, 72px);
+  width: var(--die-size);
+  height: var(--die-size);
   background: var(--sheet);
   border-radius: var(--radius-control);
   cursor: pointer;
   user-select: none;
   flex-shrink: 0;
-  position: relative;
+  position: absolute;
+  left: var(--die-x);
+  top: var(--die-y);
+  pointer-events: auto;
+  touch-action: manipulation;
+  transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1);
   transition:
-    transform 0.18s var(--ease-quart),
+    left 0.38s var(--ease-expo),
+    top 0.38s var(--ease-expo),
+    transform 0.38s var(--ease-expo),
     box-shadow 0.18s var(--ease-quart),
     outline-color 0.15s,
     background 0.15s;
   outline: var(--border-thin) solid var(--rule);
   outline-offset: 0;
   box-shadow: var(--shadow-die-rest);
+  will-change: transform;
 }
 
 .die::after {
@@ -527,8 +565,13 @@
 }
 
 .die:hover:not(.no-interact) {
-  transform: translateY(-3px);
+  transform: translate(-50%, -54%) rotate(var(--die-rot)) scale(1.03);
   box-shadow: var(--shadow-die-hover);
+}
+
+.die:active:not(.no-interact) {
+  transform: translate(-50%, -51%) rotate(var(--die-rot)) scale(0.985);
+  box-shadow: var(--shadow-die-rest);
 }
 
 .die:focus-visible {
@@ -558,14 +601,22 @@
   cursor: default;
 }
 
+.die.no-interact:hover {
+  box-shadow: var(--shadow-die-rest);
+}
+
+.die.in-tray,
+.die.in-arena {
+  box-shadow: var(--shadow-die-rest);
+}
+
 .die.pre-roll {
-  animation: dice-shake 0.32s ease-in-out;
+  animation: dice-shake 0.34s ease-in-out;
   cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .die.rolling {
-  animation: dice-land 0.4s var(--ease-expo);
+  animation: dice-tumble 0.62s var(--ease-expo);
 }
 
 .phase-label {
@@ -781,7 +832,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .die {
+    transition: background 0.15s, outline-color 0.15s, box-shadow 0.15s;
+  }
+
   .die.kept::after,
+  .die.pre-roll,
+  .die.rolling,
   .done-stamp {
     animation: none;
   }
