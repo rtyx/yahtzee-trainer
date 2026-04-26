@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yahtzee Trainer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='7' y='7' width='50' height='50' rx='8' fill='%23f8f3e7' stroke='%2326221c' stroke-width='4'/%3E%3Ccircle cx='22' cy='22' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='42' cy='22' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='32' cy='32' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='22' cy='42' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='42' cy='42' r='4.5' fill='%2326221c'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';</script>
+  <script type="module" crossorigin src="/assets/index-DpOR5w3I.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-_drNP6Vs.css">
+</head>
+<body>
+
+  <div id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Preparing the score sheet…</p>
+  </div>
+
+  <div id="app" class="hidden">
+
+    <header>
+      <div class="brand">
+        <span class="brand-mark">Yahtzee Trainer</span>
+        <span class="brand-sub">optimal play, explained</span>
+      </div>
+      <button id="btn-restart" class="btn-restart">↺ New game</button>
+      <button id="btn-theme" class="btn-theme">☀</button>
+      <button id="btn-sound" class="btn-sound">SFX on</button>
+      <div class="stats">
+        <div class="stat">
+          <span id="stat-turn-val" class="stat-value">1/13</span>
+          <span class="stat-label">Turn</span>
+        </div>
+        <div class="stat">
+          <span id="stat-score-val" class="stat-value">0</span>
+          <span class="stat-label">Score</span>
+        </div>
+        <div class="stat">
+          <span id="stat-acc-val" class="stat-value">—</span>
+          <span class="stat-label stat-label--tip" data-tip="% of keep &amp; score decisions matching optimal play">Accuracy</span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="scorecard-panel">
+        <div id="scorecard-body" class="scorecard-body"></div>
+      </section>
+
+      <section class="game-panel">
+
+        <div class="dice-section">
+          <div id="dice-container"></div>
+          <div id="phase-label" class="phase-label"></div>
+        </div>
+
+        <div class="controls">
+          <button id="btn-reroll" class="btn btn-gold hidden"></button>
+          <button id="btn-continue" class="btn btn-outline hidden">Got it</button>
+        </div>
+
+        <div id="feedback-wrap" class="feedback-wrap">
+          <div class="feedback-inner">
+            <div id="feedback-panel" class="feedback-panel"></div>
+          </div>
+        </div>
+
+        <div id="turn-history" class="turn-history"></div>
+
+        <div id="all-games-wrap" class="all-games-wrap hidden">
+          <div class="all-games-head">Past games</div>
+          <div id="all-games-history" class="all-games-history"></div>
+        </div>
+
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

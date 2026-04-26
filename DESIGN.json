@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-25T00:00:00+02:00",
+  "title": "Design System: Yahtzee Trainer",
+  "extensions": {
+    "northStar": {
+      "name": "The Swiss Score Sheet",
+      "summary": "A paper-like training tool with printed structure, handwritten values, and realistic dice as the tactile focal object."
+    },
+    "colorMeta": {
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper Field",
+        "canonical": "oklch(92.5% 0.018 84)",
+        "darkMode": "oklch(13% 0.015 62)",
+        "tonalRamp": [
+          "oklch(97.8% 0.007 86)",
+          "oklch(95.2% 0.013 85)",
+          "oklch(92.5% 0.018 84)",
+          "oklch(18.5% 0.011 60)",
+          "oklch(13% 0.015 62)"
+        ]
+      },
+      "ink": {
+        "role": "primary",
+        "displayName": "Ledger Ink",
+        "canonical": "oklch(12% 0.010 52)",
+        "darkMode": "oklch(88% 0.009 83)",
+        "tonalRamp": [
+          "oklch(12% 0.010 52)",
+          "oklch(36% 0.010 58)",
+          "oklch(56% 0.012 68)",
+          "oklch(74% 0.014 78)",
+          "oklch(88% 0.009 83)"
+        ]
+      },
+      "hand-filled": {
+        "role": "accent",
+        "displayName": "Ballpoint Blue",
+        "canonical": "oklch(19% 0.062 268)",
+        "darkMode": "oklch(79% 0.016 86)",
+        "tonalRamp": [
+          "oklch(19% 0.062 268)",
+          "oklch(36% 0.132 252)",
+          "oklch(67% 0.130 252)"
+        ]
+      },
+      "ok": {
+        "role": "positive",
+        "displayName": "Verdict Green",
+        "canonical": "oklch(42% 0.112 145)",
+        "darkMode": "oklch(67% 0.108 145)",
+        "tonalRamp": [
+          "oklch(94.5% 0.018 145)",
+          "oklch(42% 0.112 145)",
+          "oklch(20% 0.038 145)"
+        ]
+      },
+      "err": {
+        "role": "negative",
+        "displayName": "Correction Red",
+        "canonical": "oklch(46% 0.162 22)",
+        "darkMode": "oklch(70% 0.145 22)",
+        "tonalRamp": [
+          "oklch(95.8% 0.022 22)",
+          "oklch(46% 0.162 22)",
+          "oklch(21% 0.050 22)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Handwritten Display",
+        "purpose": "Final totals, handwritten score emphasis, and rare personal-moment numerals."
+      },
+      "headline": {
+        "displayName": "Printed Headline",
+        "purpose": "Brand mark and strong structural anchors."
+      },
+      "title": {
+        "displayName": "Utility Title",
+        "purpose": "Buttons, section totals, and compact structural emphasis."
+      },
+      "body": {
+        "displayName": "Instruction Body",
+        "purpose": "Feedback detail and general reading copy."
+      },
+      "label": {
+        "displayName": "Ledger Label",
+        "purpose": "Stats, headers, scorecard labels, and uppercase utility text."
+      }
+    },
+    "elevation": {
+      "philosophy": "Flat by default, with shadows reserved for dice and other directly manipulated objects.",
+      "tokens": {
+        "dice-rest": "0 2px 0 var(--rule), 0 3px 10px oklch(0% 0 0 / 0.08)",
+        "dice-hover": "0 4px 0 var(--rule), 0 7px 18px oklch(0% 0 0 / 0.11)"
+      }
+    },
+    "motion": {
+      "easing": {
+        "expo": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "quart": "cubic-bezier(0.25, 1, 0.5, 1)"
+      },
+      "principles": [
+        "Use brief, physical motion that reinforces the tactile model.",
+        "Avoid elastic or bouncy movement.",
+        "Dice can own the most expressive motion in the system."
+      ]
+    },
+    "breakpoints": {
+      "stack-main-grid": "820px"
+    },
+    "componentNotes": {
+      "scorecard": "Sticky printed ledger with heavy borders, section bars, subtotal rows, and handwritten numeric entries.",
+      "dice": "Realistic tactile objects with the highest elevation and the clearest state motion in the system.",
+      "feedback": "Inline teaching surface that opens beneath controls, never a modal."
+    },
+    "dosAndDonts": {
+      "do": [
+        "Preserve the paper score-sheet metaphor.",
+        "Use spacing, margin rhythm, and border weight as primary hierarchy tools.",
+        "Reserve green and red for evaluative meaning."
+      ],
+      "dont": [
+        "Do not make this feel like a casino interface.",
+        "Do not make this feel like a mobile game with gimmicks.",
+        "Do not make this feel like a generic SaaS dashboard.",
+        "Do not add glossy gamification or decorative effects that break the paper metaphor."
+      ]
+    }
+  }
+}

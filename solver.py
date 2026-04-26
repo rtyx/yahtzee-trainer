@@ -136,14 +136,22 @@ def score(counts, cat):
         return 50 if max(counts) == 5 else 0
     elif cat == 12:
         return dice_sum
+    elif cat == 13:
+        for i in range(5, -1, -1):
+            if counts[i] >= 2:
+                return (i + 1) * 2
+        return 0
+    elif cat == 14:
+        pairs = [i + 1 for i in range(5, -1, -1) if counts[i] >= 2]
+        return (pairs[0] + pairs[1]) * 2 if len(pairs) >= 2 else 0
     return 0
 
 
-scores_table = np.zeros((N_MS, 13), dtype=np.float64)
-upper_table  = np.zeros((N_MS, 13), dtype=np.int32)
+scores_table = np.zeros((N_MS, 15), dtype=np.float64)
+upper_table  = np.zeros((N_MS, 15), dtype=np.int32)
 
 for _i, _ms in enumerate(ALL_MULTISETS):
-    for _c in range(13):
+    for _c in range(15):
         scores_table[_i, _c] = score(_ms, _c)
         if _c < 6:
             upper_table[_i, _c] = (_c + 1) * _ms[_c]
@@ -152,9 +160,9 @@ for _i, _ms in enumerate(ALL_MULTISETS):
 # Value table
 # ---------------------------------------------------------------------------
 
-ALL_USED = (1 << 13) - 1
+ALL_USED = (1 << 15) - 1
 
-V = np.zeros((1 << 13, 64), dtype=np.float64)
+V = np.zeros((1 << 15, 64), dtype=np.float64)
 
 # Base case: all categories used
 for u in range(64):
@@ -184,7 +192,7 @@ def compute_turn_ev_batch(open_mask, upper_arr):
          For each starting ms, best keep over reroll2, weighted by first-roll prob
     """
     n_open = bin(~open_mask & ALL_USED).count('1')  # number of open cats
-    open_cats = np.array([c for c in range(13) if not (open_mask & (1 << c))], dtype=np.int32)
+    open_cats = np.array([c for c in range(15) if not (open_mask & (1 << c))], dtype=np.int32)
     if len(open_cats) == 0:
         return np.zeros(64, dtype=np.float64)
 
@@ -259,14 +267,14 @@ def popcount(x):
 def compute_policy():
     t_start = time.time()
 
-    masks_by_pc = [[] for _ in range(13)]
+    masks_by_pc = [[] for _ in range(15)]
     for mask in range(ALL_USED):
         masks_by_pc[popcount(mask)].append(mask)
 
-    total_masks = ALL_USED  # 8191 non-terminal masks
+    total_masks = ALL_USED  # non-terminal masks
     processed = 0
 
-    for pc in range(12, -1, -1):
+    for pc in range(14, -1, -1):
         t_pc = time.time()
         n_in_pc = len(masks_by_pc[pc])
         for mask in masks_by_pc[pc]:
@@ -295,6 +303,7 @@ def compute_policy():
 if __name__ == "__main__":
     print("Starting Yahtzee DP solver...", flush=True)
     print(f"  Dice multisets: {N_MS}", flush=True)
+    print(f"  Categories: 15 (including One Pair, Two Pairs)", flush=True)
     print(f"  State space: {ALL_USED+1} masks x 64 = {(ALL_USED+1)*64} states", flush=True)
 
     # Timing benchmark

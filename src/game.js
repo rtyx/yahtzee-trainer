@@ -1,0 +1,218 @@
+import { ALL_USED_MASK, UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
+import { playGameComplete, playRoll, playScoreMark, playVerdict } from './audio.js';
+import { diceCounts, keptCounts, arraysEqual } from './dice.js';
+import { scoreCategory } from './scoring.js';
+import { computeOptimalKeep, evAfterKeep, bestPlacement, catEV } from './policy.js';
+import { buildKeepFeedback, buildScoreFeedback } from './feedback.js';
+import { saveGameState, clearSavedState, saveCompletedGame } from './storage.js';
+// render.js imports this module too — circular is safe since all cross-calls happen at runtime
+import { render, renderAllGamesHistory, animateNewDice } from './render.js';
+
+export const state = {
+  dice:          [1,1,1,1,1],
+  kept:          [false,false,false,false,false],
+  savedKept:     null,
+  rerollsLeft:   2,
+  phase:         'keep',
+  openMask:      0,
+  upper:         0,
+  upperCapped:   0,
+  totalScore:    0,
+  turn:          1,
+  scores:        new Array(13).fill(null),
+  decisions:     0,
+  correct:       0,
+  history:       [],
+  feedback:      null,
+  pendingCat:    null,
+  afterFeedback: null,
+  feedbackToken: 0,
+};
+
+const rnd     = () => Math.floor(Math.random() * 6) + 1;
+const rollAll = () => [rnd(), rnd(), rnd(), rnd(), rnd()];
+
+function rollUnkept() {
+  for (let i = 0; i < 5; i++) if (!state.savedKept[i]) state.dice[i] = rnd();
+}
+
+export function saveState() {
+  saveGameState({
+    dice:        [...state.dice],
+    kept:        [...state.kept],
+    rerollsLeft: state.rerollsLeft,
+    phase:       state.phase === 'feedback' ? (state.pendingCat != null ? 'score' : 'keep') : state.phase,
+    openMask:    state.openMask,
+    upper:       state.upper,
+    upperCapped: state.upperCapped,
+    totalScore:  state.totalScore,
+    turn:        state.turn,
+    scores:      [...state.scores],
+    decisions:   state.decisions,
+    correct:     state.correct,
+    history:     [...state.history],
+  });
+}
+
+export function startGame() {
+  Object.assign(state, {
+    openMask: 0, upper: 0, upperCapped: 0, totalScore: 0,
+    turn: 1, scores: new Array(13).fill(null),
+    decisions: 0, correct: 0, history: [],
+  });
+  clearSavedState();
+  startTurn();
+}
+
+export function startTurn() {
+  state.dice          = rollAll();
+  state.kept          = [false,false,false,false,false];
+  state.savedKept     = null;
+  state.rerollsLeft   = 2;
+  state.phase         = 'keep';
+  state.feedback      = null;
+  state.pendingCat    = null;
+  state.afterFeedback = null;
+  render();
+  saveState();
+  animateNewDice(null);
+}
+
+export function handleKeepSubmit() {
+  if (state.phase !== 'keep') return;
+  const n = state.kept.filter(Boolean).length;
+
+  if (n < 5) {
+    playRoll(5 - n);
+    const diceEls = [...document.querySelectorAll('.die')];
+    diceEls.forEach((el, i) => { if (!state.kept[i]) el.classList.add('pre-roll'); });
+    const btn = document.getElementById('btn-reroll');
+    btn.disabled = true;
+    setTimeout(() => {
+      diceEls.forEach(el => el.classList.remove('pre-roll'));
+      btn.disabled = false;
+      doKeepSubmit();
+    }, 340);
+  } else {
+    doKeepSubmit();
+  }
+}
+
+function doKeepSubmit() {
+  if (state.phase !== 'keep') return;
+  const counts   = diceCounts(state.dice);
+  const userKeep = keptCounts(state.dice, state.kept);
+  const userN    = userKeep.reduce((a, b) => a + b, 0);
+
+  if (userN === 5) {
+    state.rerollsLeft = 0;
+    state.kept        = [false,false,false,false,false];
+    state.phase       = 'score';
+    state.feedback    = null;
+    render();
+    return;
+  }
+
+  const opt    = computeOptimalKeep(counts, state.rerollsLeft, state.openMask, state.upperCapped);
+  const userEV = evAfterKeep(userKeep, state.rerollsLeft - 1, state.openMask, state.upperCapped);
+  const isOpt  = arraysEqual(opt.keep, userKeep) || Math.abs(opt.ev - userEV) < 0.05;
+
+  state.decisions++;
+  if (isOpt) state.correct++;
+
+  state.savedKept     = [...state.kept];
+  state.feedback      = buildKeepFeedback(isOpt, opt.keep, userKeep, opt.ev, userEV, state.openMask);
+  state.phase         = 'feedback';
+  state.afterFeedback = proceedAfterKeep;
+  const token         = ++state.feedbackToken;
+
+  render();
+  playVerdict(isOpt);
+  if (isOpt) setTimeout(() => { if (state.feedbackToken === token) proceedAfterKeep(); }, 1100);
+}
+
+function proceedAfterKeep() {
+  state.afterFeedback = null;
+  const prevKept = [...state.savedKept];
+  rollUnkept();
+  state.rerollsLeft--;
+  state.savedKept = null;
+
+  if (state.rerollsLeft === 0) {
+    state.kept  = [false,false,false,false,false];
+    state.phase = 'score';
+  } else {
+    state.kept  = [...prevKept];
+    state.phase = 'keep';
+  }
+
+  state.feedback = null;
+  render();
+  saveState();
+  animateNewDice(prevKept);
+}
+
+export function handleScoreClick(cat) {
+  if (state.phase !== 'score') return;
+  if (state.openMask & (1 << cat)) return;
+
+  const counts    = diceCounts(state.dice);
+  const userScore = scoreCategory(counts, cat);
+  const userEV    = catEV(counts, state.openMask, state.upperCapped, cat);
+  const opt       = bestPlacement(counts, state.openMask, state.upperCapped);
+  const isOpt     = cat === opt.cat || Math.abs(userEV - opt.ev) < 0.05;
+
+  state.decisions++;
+  if (isOpt) state.correct++;
+  state.pendingCat    = cat;
+  state.feedback      = buildScoreFeedback(isOpt, opt.cat, cat, opt.score, userScore, opt.ev, userEV, state.openMask, state.upperCapped);
+  state.phase         = 'feedback';
+  state.afterFeedback = proceedAfterScore;
+  const token         = ++state.feedbackToken;
+
+  render();
+  playVerdict(isOpt);
+  if (isOpt) setTimeout(() => { if (state.feedbackToken === token) proceedAfterScore(); }, 1100);
+}
+
+export function handleContinue() {
+  if (state.phase !== 'feedback') return;
+  const fn = state.afterFeedback;
+  state.afterFeedback = null;
+  if (fn) fn();
+}
+
+function proceedAfterScore() {
+  state.afterFeedback = null;
+  const cat    = state.pendingCat;
+  const counts = diceCounts(state.dice);
+  const s      = scoreCategory(counts, cat);
+
+  state.scores[cat]  = s;
+  state.openMask    |= (1 << cat);
+  state.totalScore  += s;
+  if (cat < 6) { state.upper += s; state.upperCapped = Math.min(state.upper, 63); }
+
+  if (state.openMask === ALL_USED_MASK) {
+    const upperBonus = state.upper >= UPPER_THRESHOLD;
+    if (upperBonus) state.totalScore += UPPER_BONUS;
+    state.phase    = 'done';
+    state.feedback = null;
+    saveCompletedGame(state.totalScore, state.decisions, state.correct, upperBonus);
+    clearSavedState();
+    render();
+    renderAllGamesHistory();
+    playGameComplete();
+    return;
+  }
+
+  playScoreMark();
+  state.history.unshift({ turn: state.turn, dice: [...state.dice], cat, score: s });
+  state.turn++;
+  startTurn();
+}
+
+export function restartGame() {
+  if (state.openMask === 0 && state.turn === 1 && state.phase === 'keep' && state.rerollsLeft === 2) return;
+  if (confirm('Start a new game? Your current progress will be lost.')) startGame();
+}

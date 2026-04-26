@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yahtzee Trainer</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='7' y='7' width='50' height='50' rx='8' fill='%23f8f3e7' stroke='%2326221c' stroke-width='4'/%3E%3Ccircle cx='22' cy='22' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='42' cy='22' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='32' cy='32' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='22' cy='42' r='4.5' fill='%2326221c'/%3E%3Ccircle cx='42' cy='42' r='4.5' fill='%2326221c'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';</script>
 </head>
@@ -14,7 +15,7 @@
 
   <div id="loading">
     <div class="spinner"></div>
-    <p class="loading-text">Loading optimal policy…</p>
+    <p class="loading-text">Preparing the score sheet…</p>
   </div>
 
   <div id="app" class="hidden">
@@ -26,6 +27,7 @@
       </div>
       <button id="btn-restart" class="btn-restart">↺ New game</button>
       <button id="btn-theme" class="btn-theme">☀</button>
+      <button id="btn-sound" class="btn-sound">SFX on</button>
       <div class="stats">
         <div class="stat">
           <span id="stat-turn-val" class="stat-value">1/13</span>
@@ -37,12 +39,16 @@
         </div>
         <div class="stat">
           <span id="stat-acc-val" class="stat-value">—</span>
-          <span class="stat-label">Accuracy</span>
+          <span class="stat-label stat-label--tip" data-tip="% of keep &amp; score decisions matching optimal play">Accuracy</span>
         </div>
       </div>
     </header>
 
     <main>
+
+      <section class="scorecard-panel">
+        <div id="scorecard-body" class="scorecard-body"></div>
+      </section>
 
       <section class="game-panel">
 
@@ -64,19 +70,16 @@
 
         <div id="turn-history" class="turn-history"></div>
 
-      </section>
-
-      <section class="scorecard-panel">
-        <div class="scorecard-head">
-          <span class="scorecard-title">Scorecard</span>
-          <span id="sc-total" class="sc-total-display">0</span>
+        <div id="all-games-wrap" class="all-games-wrap hidden">
+          <div class="all-games-head">Past games</div>
+          <div id="all-games-history" class="all-games-history"></div>
         </div>
-        <div id="scorecard-body" class="scorecard-body"></div>
+
       </section>
 
     </main>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

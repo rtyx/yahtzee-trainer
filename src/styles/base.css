@@ -1,0 +1,135 @@
+/* ============================================================
+   YAHTZEE TRAINER — Base
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-print);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: var(--lh-body);
+  font-kerning: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#loading {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  z-index: 20;
+  background: var(--paper);
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--rule);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.loading-text {
+  font-family: var(--font-print);
+  font-size: var(--t-sm);
+  color: var(--ink-light);
+  letter-spacing: 0.02em;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scoring-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes dice-shake {
+  0% { transform: rotate(0deg) translateY(0); }
+  12% { transform: rotate(-11deg) translateY(-3px); }
+  25% { transform: rotate(13deg) translateY(-7px); }
+  40% { transform: rotate(-10deg) translateY(-5px); }
+  55% { transform: rotate(12deg) translateY(-8px); }
+  68% { transform: rotate(-8deg) translateY(-4px); }
+  80% { transform: rotate(6deg) translateY(-2px); }
+  92% { transform: rotate(-3deg) translateY(-1px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+@keyframes dice-land {
+  0% {
+    transform: rotate(-18deg) scale(0.48);
+    opacity: 0.1;
+  }
+
+  45% {
+    transform: rotate(5deg) scale(1.11);
+    opacity: 1;
+  }
+
+  68% {
+    transform: rotate(-2.5deg) scale(0.96);
+  }
+
+  84% {
+    transform: rotate(1deg) scale(1.02);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+
+@keyframes held-label-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes stamp-settle {
+  from {
+    opacity: 0;
+    transform: rotate(-2deg) scale(0.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(-2deg) scale(1);
+  }
+}
