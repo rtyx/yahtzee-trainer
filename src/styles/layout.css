@@ -194,6 +194,10 @@ main {
     display: block;
   }
 
+  #app[data-mobile-tab="dice"] main {
+    padding-bottom: clamp(0.65rem, 2vh, 1rem);
+  }
+
   .scorecard-panel {
     position: static;
   }
