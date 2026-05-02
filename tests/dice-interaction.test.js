@@ -22,3 +22,31 @@ test('decision feedback pauses only when enabled', () => {
   assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: true }), true);
   assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: false }), false);
 });
+
+test('score phase preserves dice kept before the final roll', () => {
+  assert.equal(typeof gameModule.getScorePhaseKeepState, 'function');
+
+  assert.deepEqual(
+    gameModule.getScorePhaseKeepState(
+      [true, true, false, true, true],
+      [3, 0, 1, 4],
+    ),
+    {
+      kept: [true, true, false, true, true],
+      keptOrder: [3, 0, 1, 4],
+    },
+  );
+});
+
+test('score phase drops stale kept-order entries before visual toggles continue', () => {
+  assert.deepEqual(
+    gameModule.getScorePhaseKeepState(
+      [true, false, false, true, false],
+      [1, 3, 0, 4],
+    ),
+    {
+      kept: [true, false, false, true, false],
+      keptOrder: [3, 0],
+    },
+  );
+});

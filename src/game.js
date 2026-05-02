@@ -139,6 +139,13 @@ export function shouldShowDecisionFeedback(config = settings) {
   return config.showDecisionFeedback !== false;
 }
 
+export function getScorePhaseKeepState(kept, keptOrder) {
+  return {
+    kept: [...kept],
+    keptOrder: keptOrder.filter(i => kept[i]),
+  };
+}
+
 export function toggleDieKeep(index) {
   if (!canToggleDieKeep()) return;
   if (index < 0 || index >= state.kept.length) return;
@@ -187,9 +194,10 @@ function doKeepSubmit() {
   const userN    = userKeep.reduce((a, b) => a + b, 0);
 
   if (userN === 5) {
+    const scoreKeepState = getScorePhaseKeepState(state.kept, state.keptOrder);
     state.rerollsLeft = 0;
-    state.kept        = [false,false,false,false,false];
-    state.keptOrder   = [];
+    state.kept        = scoreKeepState.kept;
+    state.keptOrder   = scoreKeepState.keptOrder;
     layoutDiceForState();
     state.phase       = 'score';
     state.feedback    = null;
@@ -228,8 +236,9 @@ function proceedAfterKeep() {
   state.savedKept = null;
 
   if (state.rerollsLeft === 0) {
-    state.kept  = [false,false,false,false,false];
-    state.keptOrder = [];
+    const scoreKeepState = getScorePhaseKeepState(prevKept, state.keptOrder);
+    state.kept = scoreKeepState.kept;
+    state.keptOrder = scoreKeepState.keptOrder;
     state.phase = 'score';
   } else {
     state.kept  = [...prevKept];
