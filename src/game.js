@@ -130,6 +130,14 @@ export function shouldShowDecisionFeedback(config = settings) {
   return config.showDecisionFeedback !== false;
 }
 
+export function shouldConfirmRestart(gameState = state, disabledCategoryMask = getDisabledCategoryMask()) {
+  return gameState.openMask !== disabledCategoryMask
+    || gameState.turn !== 1
+    || gameState.phase !== 'ready'
+    || gameState.rerollsLeft !== 2
+    || gameState.decisions !== 0;
+}
+
 export function getScorePhaseKeepState(kept, keptOrder) {
   return {
     kept: [...kept],
@@ -328,6 +336,9 @@ function proceedAfterScore() {
 }
 
 export function restartGame() {
-  if (state.openMask === getDisabledCategoryMask() && state.turn === 1 && state.phase === 'ready' && state.rerollsLeft === 2) return;
+  if (!shouldConfirmRestart()) {
+    startGame();
+    return;
+  }
   if (confirm('Start a new game? Your current progress will be lost.')) startGame();
 }

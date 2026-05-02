@@ -167,29 +167,42 @@ function initSettingsDialog(shakeToRoll) {
   });
 
   btnSave.addEventListener('click', async () => {
+    if (btnSave.disabled) return;
     const next = formSettings();
     const shouldRestart = hasRuleChanges(next);
     if (shouldRestart && hasScoredProgress() && !confirm('Rule changes start a fresh game. Continue?')) return;
 
-    if (next.shakeToRollEnabled) {
-      const activated = await shakeToRoll.setEnabled(true);
-      if (!activated) {
-        next.shakeToRollEnabled = false;
-        shakeRollInput.checked = false;
-        alert('Shake to roll could not be activated. On iPhone, allow Motion & Orientation access when prompted, then try again.');
-      }
-    } else {
-      await shakeToRoll.setEnabled(false);
-    }
+    const originalText = btnSave.textContent;
+    btnSave.disabled = true;
+    btnSave.textContent = 'Saving...';
 
-    if (shouldRestart) await loadPolicyFor(next);
-    updateSettings(next);
-    setScoringOptions(next);
-    setSoundEnabled(next.soundEnabled);
-    if (next.soundEnabled) primeAudio();
-    if (shouldRestart) startGame();
-    else render();
-    renderAllGamesHistory();
-    dialog.close();
+    try {
+      if (next.shakeToRollEnabled) {
+        const activated = await shakeToRoll.setEnabled(true);
+        if (!activated) {
+          next.shakeToRollEnabled = false;
+          shakeRollInput.checked = false;
+          alert('Shake to roll could not be activated. On iPhone, allow Motion & Orientation access when prompted, then try again.');
+        }
+      } else {
+        await shakeToRoll.setEnabled(false);
+      }
+
+      if (shouldRestart) await loadPolicyFor(next);
+      updateSettings(next);
+      setScoringOptions(next);
+      setSoundEnabled(next.soundEnabled);
+      if (next.soundEnabled) primeAudio();
+      if (shouldRestart) startGame();
+      else render();
+      renderAllGamesHistory();
+      dialog.close();
+    } catch (error) {
+      console.error('Could not save settings', error);
+      alert('Could not save settings because the scoring policy failed to load. Try refreshing the page, then save again.');
+    } finally {
+      btnSave.disabled = false;
+      btnSave.textContent = originalText;
+    }
   });
 }

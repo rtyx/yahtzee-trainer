@@ -36,6 +36,30 @@ test('decision feedback pauses only when enabled', () => {
   assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: false }), false);
 });
 
+test('fresh ready games can be restarted without confirmation', () => {
+  assert.equal(typeof gameModule.shouldConfirmRestart, 'function');
+  assert.equal(
+    gameModule.shouldConfirmRestart({
+      openMask: 0,
+      turn: 1,
+      phase: 'ready',
+      rerollsLeft: 2,
+      decisions: 0,
+    }, 0),
+    false,
+  );
+  assert.equal(
+    gameModule.shouldConfirmRestart({
+      openMask: 0,
+      turn: 1,
+      phase: 'keep',
+      rerollsLeft: 2,
+      decisions: 0,
+    }, 0),
+    true,
+  );
+});
+
 test('score phase preserves dice kept before the final roll', () => {
   assert.equal(typeof gameModule.getScorePhaseKeepState, 'function');
 
