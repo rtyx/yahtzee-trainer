@@ -1,4 +1,5 @@
-import { CAT_NAMES, SCORECARD_KEY_ORDER } from './constants.js';
+import { CAT_NAMES } from './constants.js';
+import { settings, getScorecardKeyOrder } from './settings.js';
 import {
   state,
   clearKeptDice,
@@ -9,7 +10,6 @@ import {
   startGame,
 } from './game.js';
 
-const SCORE_KEYS = new Map(SCORECARD_KEY_ORDER.map(([key, cat]) => [key.toLowerCase(), cat]));
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 const toggleModifier = isMac ? 'Meta' : 'Control';
 
@@ -71,7 +71,7 @@ function renderHelp() {
   }
 
   if (state.phase === 'score' && !state.diceAnimating) {
-    for (const [key, cat] of SCORECARD_KEY_ORDER) {
+    for (const [key, cat] of getScorecardKeyOrder(settings)) {
       if (state.openMask & (1 << cat)) continue;
       rows.push(renderKeyRow(key, CAT_NAMES[cat]));
     }
@@ -144,7 +144,8 @@ function handleKeyDown(event) {
   }
 
   if (state.phase === 'score') {
-    const cat = SCORE_KEYS.get(event.key.toLowerCase());
+    const scoreKeys = new Map(getScorecardKeyOrder(settings).map(([key, cat]) => [key.toLowerCase(), cat]));
+    const cat = scoreKeys.get(event.key.toLowerCase());
     if (cat == null || (state.openMask & (1 << cat))) return;
     event.preventDefault();
     handleScoreClick(cat);

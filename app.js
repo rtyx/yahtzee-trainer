@@ -1,10 +1,13 @@
 import { buildDiceEngine } from './src/dice.js';
 import { loadPolicy } from './src/policy.js';
-import { loadSavedState } from './src/storage.js';
+import { clearAllGames, loadSavedState } from './src/storage.js';
 import { isSoundEnabled, setSoundEnabled, primeAudio } from './src/audio.js';
+import { setScoringOptions } from './src/scoring.js';
+import { settings, updateSettings, applyThemePreference, getDisabledCategoryMask } from './src/settings.js';
 import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from './src/game.js';
 import { render, renderAllGamesHistory } from './src/render.js';
 import { initKeyboardControls } from './src/keyboard.js';
+import { initMobileTabs } from './src/mobile-tabs.js';
 
 function isUnplayedFirstTurn(saved) {
   return saved
@@ -16,8 +19,16 @@ function isUnplayedFirstTurn(saved) {
     && saved.kept?.every(k => !k);
 }
 
+function savedRulesMatch(saved) {
+  if (!saved?.settings) return true;
+  return saved.settings.fullHouseScore === settings.fullHouseScore
+    && saved.settings.twoPairsEnabled === settings.twoPairsEnabled;
+}
+
 async function init() {
   buildDiceEngine();
+  setScoringOptions(settings);
+  applyThemePreference(settings);
 
   try {
     const resp = await fetch('policy.json');
@@ -38,44 +49,22 @@ async function init() {
   document.getElementById('btn-continue').addEventListener('click', handleContinue);
   document.getElementById('btn-restart').addEventListener('click', restartGame);
   initKeyboardControls();
+  initMobileTabs();
   document.addEventListener('pointerdown', primeAudio, { once: true, passive: true, capture: true });
 
-  const btnTheme = document.getElementById('btn-theme');
-  btnTheme.textContent = document.documentElement.dataset.theme === 'light' ? '☾' : '☀';
-  btnTheme.addEventListener('click', () => {
-    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = next;
-    localStorage.setItem('theme', next);
-    btnTheme.textContent = next === 'light' ? '☾' : '☀';
-  });
-
-  const btnSound = document.getElementById('btn-sound');
-  function renderSoundButton() {
-    const soundOn = isSoundEnabled();
-    btnSound.textContent = soundOn ? 'SFX on' : 'SFX off';
-    btnSound.classList.toggle('muted', !soundOn);
-    btnSound.setAttribute('aria-pressed', String(soundOn));
-    btnSound.setAttribute('aria-label', soundOn ? 'Mute sound effects' : 'Enable sound effects');
-    btnSound.title = soundOn ? 'Mute sound effects' : 'Enable sound effects';
-  }
-  renderSoundButton();
-  btnSound.addEventListener('click', () => {
-    setSoundEnabled(!isSoundEnabled());
-    renderSoundButton();
-    primeAudio();
-  });
+  initSettingsDialog();
 
   const saved = loadSavedState();
-  if (saved && saved.phase !== 'done') {
+  if (saved && saved.phase !== 'done' && savedRulesMatch(saved)) {
     const restored = isUnplayedFirstTurn(saved)
       ? { ...saved, phase: 'ready', hasRolled: false }
       : saved;
     Object.assign(state, {
       dice: restored.dice, kept: restored.kept, rerollsLeft: restored.rerollsLeft,
       keptOrder: restored.keptOrder ?? restored.kept.map((kept, i) => kept ? i : null).filter(i => i != null),
-      phase: restored.phase, openMask: restored.openMask, upper: restored.upper,
+      phase: restored.phase, openMask: restored.openMask | getDisabledCategoryMask(), upper: restored.upper,
       upperCapped: restored.upperCapped, totalScore: restored.totalScore,
-      turn: restored.turn, scores: restored.scores, decisions: restored.decisions,
+      turn: restored.turn, scores: Object.assign(new Array(15).fill(null), restored.scores ?? []), decisions: restored.decisions,
       correct: restored.correct, history: restored.history,
       displayDice: restored.dice, hasRolled: restored.hasRolled ?? restored.phase !== 'ready',
       readyInTray: restored.readyInTray ?? restored.phase === 'ready',
@@ -90,3 +79,67 @@ async function init() {
 }
 
 init();
+
+function initSettingsDialog() {
+  const dialog = document.getElementById('settings-dialog');
+  const btnOpen = document.getElementById('btn-settings');
+  const btnClose = document.getElementById('btn-settings-close');
+  const btnSave = document.getElementById('btn-settings-save');
+  const btnDeleteHistory = document.getElementById('btn-delete-history');
+  const fullHouseInputs = [...document.querySelectorAll('input[name="full-house-score"]')];
+  const twoPairsInput = document.getElementById('setting-two-pairs');
+  const soundInput = document.getElementById('setting-sound');
+  const themeInputs = [...document.querySelectorAll('input[name="theme"]')];
+
+  function fillForm() {
+    const current = settings;
+    fullHouseInputs.forEach(input => { input.checked = input.value === current.fullHouseScore; });
+    themeInputs.forEach(input => { input.checked = input.value === current.theme; });
+    twoPairsInput.checked = current.twoPairsEnabled;
+    soundInput.checked = current.soundEnabled;
+  }
+
+  function formSettings() {
+    return {
+      fullHouseScore: fullHouseInputs.find(input => input.checked)?.value ?? settings.fullHouseScore,
+      twoPairsEnabled: twoPairsInput.checked,
+      soundEnabled: soundInput.checked,
+      theme: themeInputs.find(input => input.checked)?.value ?? settings.theme,
+    };
+  }
+
+  function hasRuleChanges(next) {
+    return next.fullHouseScore !== settings.fullHouseScore || next.twoPairsEnabled !== settings.twoPairsEnabled;
+  }
+
+  btnOpen.addEventListener('click', () => {
+    fillForm();
+    dialog.showModal();
+  });
+  btnClose.addEventListener('click', () => dialog.close());
+
+  btnDeleteHistory.addEventListener('click', () => {
+    if (!confirm('Delete all completed game history?')) return;
+    clearAllGames();
+    renderAllGamesHistory();
+  });
+
+  btnSave.addEventListener('click', () => {
+    const next = formSettings();
+    const shouldRestart = hasRuleChanges(next);
+    const gameStarted = state.turn > 1 || state.openMask !== getDisabledCategoryMask() || state.phase !== 'ready';
+    if (shouldRestart && gameStarted && !confirm('Rule changes start a fresh game. Continue?')) {
+      fillForm();
+      return;
+    }
+
+    updateSettings(next);
+    setScoringOptions(next);
+    setSoundEnabled(next.soundEnabled);
+    if (next.soundEnabled) primeAudio();
+    if (shouldRestart) startGame();
+    else render();
+    renderAllGamesHistory();
+    dialog.close();
+  });
+}

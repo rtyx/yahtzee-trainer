@@ -9,7 +9,19 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || 'dark';</script>
+  <script>
+    (() => {
+      let preference = 'system';
+      try {
+        const raw = localStorage.getItem('yahtzee_settings');
+        preference = raw ? JSON.parse(raw).theme || 'system' : localStorage.getItem('theme') || 'system';
+      } catch (_) {}
+      document.documentElement.dataset.themePreference = preference;
+      document.documentElement.dataset.theme = preference === 'system'
+        ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+        : preference;
+    })();
+  </script>
 </head>
 <body>
 
@@ -26,8 +38,7 @@
         <span class="brand-sub">optimal play, explained</span>
       </div>
       <button id="btn-restart" class="btn-restart">↺ New game</button>
-      <button id="btn-theme" class="btn-theme">☀</button>
-      <button id="btn-sound" class="btn-sound">SFX on</button>
+      <button id="btn-settings" class="btn-settings" aria-haspopup="dialog" aria-controls="settings-dialog">Settings</button>
       <div class="stats">
         <div class="stat">
           <span id="stat-turn-val" class="stat-value">1/13</span>
@@ -44,13 +55,18 @@
       </div>
     </header>
 
+    <nav class="mobile-tabs" role="tablist" aria-label="Mobile game views">
+      <button id="tab-scorecard" class="mobile-tab" type="button" role="tab" aria-selected="false" aria-controls="scorecard-panel">Scorecard</button>
+      <button id="tab-dice" class="mobile-tab" type="button" role="tab" aria-selected="true" aria-controls="game-panel">Dice</button>
+    </nav>
+
     <main>
 
-      <section class="scorecard-panel">
+      <section id="scorecard-panel" class="scorecard-panel" role="tabpanel" aria-labelledby="tab-scorecard">
         <div id="scorecard-body" class="scorecard-body"></div>
       </section>
 
-      <section class="game-panel">
+      <section id="game-panel" class="game-panel" role="tabpanel" aria-labelledby="tab-dice">
 
         <div class="dice-section">
           <div id="dice-board" aria-label="Dice rolling box">
@@ -86,6 +102,72 @@
     </main>
 
     <aside id="keyboard-help" class="keyboard-help" aria-live="polite" aria-hidden="true"></aside>
+
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-head">
+        <div>
+          <h2 id="settings-title">Settings</h2>
+          <p>Game rules and table preferences</p>
+        </div>
+        <button id="btn-settings-close" class="btn-icon" aria-label="Close settings">×</button>
+      </div>
+
+      <div class="settings-body">
+        <fieldset class="settings-field">
+          <legend>Full House</legend>
+          <label class="option-row">
+            <input type="radio" name="full-house-score" value="fixed">
+            <span>
+              <strong>Fixed 25 points</strong>
+              <small>Classic trainer scoring</small>
+            </span>
+          </label>
+          <label class="option-row">
+            <input type="radio" name="full-house-score" value="sum">
+            <span>
+              <strong>Nominal dice total</strong>
+              <small>Score the dice that form the house</small>
+            </span>
+          </label>
+        </fieldset>
+
+        <fieldset class="settings-field">
+          <legend>Scorecard</legend>
+          <label class="switch-row">
+            <span>
+              <strong>Use 2 Paar</strong>
+              <small>Show the two-pairs category</small>
+            </span>
+            <input id="setting-two-pairs" type="checkbox">
+          </label>
+        </fieldset>
+
+        <fieldset class="settings-field">
+          <legend>Preferences</legend>
+          <label class="switch-row">
+            <span>
+              <strong>Sound effects</strong>
+              <small>Rolls, marks, and feedback tones</small>
+            </span>
+            <input id="setting-sound" type="checkbox">
+          </label>
+          <div class="theme-options" role="radiogroup" aria-label="Theme">
+            <label><input type="radio" name="theme" value="system"><span>System</span></label>
+            <label><input type="radio" name="theme" value="light"><span>Light</span></label>
+            <label><input type="radio" name="theme" value="dark"><span>Dark</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset class="settings-field danger-field">
+          <legend>History</legend>
+          <button id="btn-delete-history" class="btn-danger">Delete history</button>
+        </fieldset>
+      </div>
+
+      <div class="settings-actions">
+        <button id="btn-settings-save" class="btn btn-gold">Save settings</button>
+      </div>
+    </dialog>
   </div>
 
   <script type="module" src="app.js"></script>

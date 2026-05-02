@@ -1,4 +1,12 @@
-export function scoreCategory(counts, cat) {
+let scoringOptions = {
+  fullHouseScore: 'fixed',
+};
+
+export function setScoringOptions(options = {}) {
+  scoringOptions = { ...scoringOptions, ...options };
+}
+
+export function scoreCategory(counts, cat, options = scoringOptions) {
   const diceSum = counts.reduce((s, c, i) => s + (i + 1) * c, 0);
   const maxC = Math.max(...counts);
   if (cat < 6)   return (cat + 1) * counts[cat];
@@ -6,7 +14,9 @@ export function scoreCategory(counts, cat) {
   if (cat === 7)  return maxC >= 4 ? diceSum : 0;
   if (cat === 8) {
     const nz = counts.filter(c => c > 0).sort((a, b) => a - b);
-    return nz.length === 2 && nz[0] === 2 && nz[1] === 3 ? 25 : 0;
+    const isFullHouse = nz.length === 2 && nz[0] === 2 && nz[1] === 3;
+    if (!isFullHouse) return 0;
+    return options.fullHouseScore === 'sum' ? diceSum : 25;
   }
   if (cat === 9) {
     const v = new Set(); counts.forEach((c, i) => { if (c > 0) v.add(i + 1); });

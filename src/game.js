@@ -1,10 +1,11 @@
-import { ALL_USED_MASK, UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
+import { UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
 import { playDieToggle, playGameComplete, playRoll, playScoreMark, playVerdict } from './audio.js';
 import { diceCounts, keptCounts, arraysEqual } from './dice.js';
 import { scoreCategory } from './scoring.js';
 import { computeOptimalKeep, evAfterKeep, bestPlacement, catEV } from './policy.js';
 import { buildKeepFeedback, buildScoreFeedback } from './feedback.js';
 import { saveGameState, clearSavedState, saveCompletedGame } from './storage.js';
+import { settings, getAllUsedMask, getDisabledCategoryMask } from './settings.js';
 // render.js imports this module too — circular is safe since all cross-calls happen at runtime
 import { render, renderAllGamesHistory, animateNewDice, resetDiceToTray, layoutDiceForState } from './render.js';
 
@@ -20,7 +21,7 @@ export const state = {
   upperCapped:   0,
   totalScore:    0,
   turn:          1,
-  scores:        new Array(13).fill(null),
+  scores:        new Array(15).fill(null),
   decisions:     0,
   correct:       0,
   history:       [],
@@ -60,13 +61,17 @@ export function saveState() {
     history:     [...state.history],
     hasRolled:   state.hasRolled,
     readyInTray: state.readyInTray,
+    settings:    {
+      fullHouseScore: settings.fullHouseScore,
+      twoPairsEnabled: settings.twoPairsEnabled,
+    },
   });
 }
 
 export function startGame() {
   Object.assign(state, {
-    openMask: 0, upper: 0, upperCapped: 0, totalScore: 0,
-    turn: 1, scores: new Array(13).fill(null),
+    openMask: getDisabledCategoryMask(), upper: 0, upperCapped: 0, totalScore: 0,
+    turn: 1, scores: new Array(15).fill(null),
     decisions: 0, correct: 0, history: [],
     diceAnimating: false,
   });
@@ -265,7 +270,7 @@ function proceedAfterScore() {
   state.totalScore  += s;
   if (cat < 6) { state.upper += s; state.upperCapped = Math.min(state.upper, 63); }
 
-  if (state.openMask === ALL_USED_MASK) {
+  if (state.openMask === getAllUsedMask(settings)) {
     const upperBonus = state.upper >= UPPER_THRESHOLD;
     if (upperBonus) state.totalScore += UPPER_BONUS;
     state.phase    = 'done';
@@ -285,6 +290,6 @@ function proceedAfterScore() {
 }
 
 export function restartGame() {
-  if (state.openMask === 0 && state.turn === 1 && state.phase === 'ready' && state.rerollsLeft === 2) return;
+  if (state.openMask === getDisabledCategoryMask() && state.turn === 1 && state.phase === 'ready' && state.rerollsLeft === 2) return;
   if (confirm('Start a new game? Your current progress will be lost.')) startGame();
 }

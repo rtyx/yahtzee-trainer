@@ -2,7 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  DEFAULT_SETTINGS,
+  loadSettings,
   loadSoundEnabled,
+  saveSettings,
   saveSoundEnabled,
 } from '../src/storage.js';
 
@@ -34,4 +37,36 @@ test('sound preference round-trips through localStorage', () => {
 
   saveSoundEnabled(true);
   assert.equal(loadSoundEnabled(), true);
+});
+
+test('settings default to system theme and classic rules', () => {
+  globalThis.localStorage = createStorage();
+  assert.deepEqual(loadSettings(), DEFAULT_SETTINGS);
+});
+
+test('settings round-trip and normalize invalid values', () => {
+  globalThis.localStorage = createStorage();
+
+  saveSettings({
+    fullHouseScore: 'sum',
+    twoPairsEnabled: false,
+    soundEnabled: false,
+    theme: 'light',
+  });
+
+  assert.deepEqual(loadSettings(), {
+    fullHouseScore: 'sum',
+    twoPairsEnabled: false,
+    soundEnabled: false,
+    theme: 'light',
+  });
+
+  saveSettings({
+    fullHouseScore: 'anything',
+    twoPairsEnabled: true,
+    soundEnabled: true,
+    theme: 'sepia',
+  });
+
+  assert.deepEqual(loadSettings(), DEFAULT_SETTINGS);
 });

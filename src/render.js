@@ -1,7 +1,8 @@
-import { CAT_NAMES, LOWER_ORDER, SCORECARD_KEY_ORDER, UPPER_THRESHOLD, UPPER_BONUS, PIPS } from './constants.js';
+import { CAT_NAMES, UPPER_THRESHOLD, UPPER_BONUS, PIPS } from './constants.js';
 import { dieSVG, diceCounts } from './dice.js';
 import { scoreCategory } from './scoring.js';
 import { loadAllGames } from './storage.js';
+import { settings, getActiveCategoryCount, getLowerOrder, getScorecardKeyOrder } from './settings.js';
 // game.js imports this module too — circular is safe since all cross-calls happen at runtime
 import { state, handleScoreClick, startGame, toggleDieKeep } from './game.js';
 
@@ -52,7 +53,9 @@ function handleScorecardRowKeydown(event, cat) {
   handleScoreClick(cat);
 }
 
-const SCORECARD_KEY_BY_CAT = new Map(SCORECARD_KEY_ORDER.map(([key, cat]) => [cat, key]));
+function getScorecardKeyByCat() {
+  return new Map(getScorecardKeyOrder(settings).map(([key, cat]) => [cat, key]));
+}
 
 const TRAY_X = [17, 33.5, 50, 66.5, 83];
 const ARENA_SLOTS = [
@@ -133,7 +136,7 @@ export function render() {
 function renderHeader() {
   const acc = state.decisions >= 5
     ? Math.round(100 * state.correct / state.decisions) + '%' : '—';
-  document.getElementById('stat-turn-val').textContent  = `${state.turn}/${CAT_NAMES.length}`;
+  document.getElementById('stat-turn-val').textContent  = `${state.turn}/${getActiveCategoryCount(settings)}`;
   document.getElementById('stat-score-val').textContent = state.totalScore;
   document.getElementById('stat-acc-val').textContent   = acc;
 }
@@ -306,6 +309,7 @@ function renderScorecard() {
   const isScore = state.phase === 'score' && !state.diceAnimating;
   document.querySelector('.scorecard-panel')?.classList.toggle('scoring', isScore);
   const counts  = isScore ? diceCounts(state.dice) : null;
+  const scorecardKeyByCat = getScorecardKeyByCat();
 
   const bonusState = getScorecardBonusState(state.upper);
 
@@ -319,7 +323,7 @@ function renderScorecard() {
       tr.innerHTML = `<td class="sc-name-cell">${CAT_NAMES[cat]}</td><td class="sc-score-cell">${state.scores[cat]}</td>`;
     } else if (canClick) {
       const pot = scoreCategory(counts, cat);
-      const key = SCORECARD_KEY_BY_CAT.get(cat);
+      const key = scorecardKeyByCat.get(cat);
       tr.className = 'sc-data-row clickable';
       tr.tabIndex = 0;
       tr.setAttribute('role', 'button');
@@ -375,7 +379,7 @@ function renderScorecard() {
   secB.className = 'sc-section-row sc-section-lower';
   secB.innerHTML = `<td colspan="2">Untere Sektion</td>`;
   tbody.appendChild(secB);
-  for (const c of LOWER_ORDER) tbody.appendChild(dataRow(c));
+  for (const c of getLowerOrder(settings)) tbody.appendChild(dataRow(c));
 
   // Total
   const totalRow = document.createElement('tr');

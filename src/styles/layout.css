@@ -57,6 +57,10 @@ header {
   align-items: flex-end;
 }
 
+.mobile-tabs {
+  display: none;
+}
+
 main {
   display: grid;
   grid-template-columns: var(--sidebar-width) 1fr;
@@ -83,6 +87,10 @@ main {
 }
 
 @media (max-width: 580px) {
+  #app {
+    min-height: 100dvh;
+  }
+
   .brand-sub {
     display: none;
   }
@@ -101,11 +109,70 @@ main {
     gap: 0.875rem;
   }
 
+  .mobile-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 35;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+    margin-bottom: 0.875rem;
+    padding: 0.35rem 0 0.75rem;
+    background: var(--paper);
+  }
+
+  .mobile-tab {
+    min-height: 2.55rem;
+    border: var(--border-thin) solid var(--rule);
+    background: var(--surface-tint);
+    color: var(--ink-light);
+    font-family: var(--font-head);
+    font-size: var(--t-xs);
+    font-weight: 700;
+    letter-spacing: var(--ls-caps);
+    text-transform: uppercase;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .mobile-tab + .mobile-tab {
+    border-left: 0;
+  }
+
+  .mobile-tab[aria-selected="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--sheet);
+  }
+
+  .mobile-tab:focus-visible {
+    outline: var(--border-thin) solid var(--score-focus-ring);
+    outline-offset: 2px;
+    position: relative;
+    z-index: 1;
+  }
+
+  main {
+    display: block;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
   .scorecard-panel {
     position: static;
   }
 
+  #app[data-mobile-tab="scorecard"] .game-panel,
+  #app[data-mobile-tab="dice"] .scorecard-panel {
+    display: none;
+  }
+
+  #turn-history,
+  #all-games-wrap {
+    display: none !important;
+  }
+
   header {
     gap: 0.875rem;
+    margin-bottom: 0;
   }
 }
