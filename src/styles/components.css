@@ -271,6 +271,19 @@
   border-bottom: 0;
 }
 
+.settings-version {
+  margin-right: auto;
+  color: var(--ink-light);
+  font-family: var(--font-print);
+  font-size: var(--t-2xs);
+}
+
+.settings-version code {
+  margin-left: 0.25rem;
+  color: var(--ink-mid);
+  font: inherit;
+}
+
 .settings-head h2 {
   margin: 0;
   font-family: var(--font-head);

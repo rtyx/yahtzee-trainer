@@ -132,7 +132,7 @@
 
       <div class="settings-body">
         <fieldset class="settings-field">
-          <legend>Combination scoring</legend>
+          <legend>Scoring mode</legend>
           <label class="option-row">
             <input type="radio" name="combination-score" value="fixed">
             <span>
@@ -144,7 +144,7 @@
             <input type="radio" name="combination-score" value="sum">
             <span>
               <strong>Nominal dice total</strong>
-              <small>Score the dice that form each combination</small>
+              <small>Score nominal dice values, except full house is 25 and YATZY is 50</small>
             </span>
           </label>
         </fieldset>
@@ -218,6 +218,10 @@
       </div>
 
       <div class="settings-actions">
+        <div class="settings-version" aria-label="Game version">
+          <span>Version</span>
+          <code id="settings-version-hash">dev</code>
+        </div>
         <button id="btn-settings-save" class="btn btn-gold">Save settings</button>
       </div>
     </dialog>

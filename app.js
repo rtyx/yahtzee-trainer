@@ -3,7 +3,7 @@ import { loadPolicy } from './src/policy.js';
 import { clearAllGames, loadSavedState } from './src/storage.js';
 import { isSoundEnabled, setSoundEnabled, primeAudio } from './src/audio.js';
 import { setScoringOptions } from './src/scoring.js';
-import { settings, updateSettings, applyThemePreference, getDisabledCategoryMask } from './src/settings.js';
+import { settings, updateSettings, applyThemePreference, applyGameVersionMarker, getDisabledCategoryMask } from './src/settings.js';
 import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from './src/game.js';
 import { render, renderAllGamesHistory } from './src/render.js';
 import { initKeyboardControls } from './src/keyboard.js';
@@ -64,6 +64,7 @@ async function init() {
   document.addEventListener('pointerdown', primeAudio, { once: true, passive: true, capture: true });
 
   initSettingsDialog(shakeToRoll);
+  applyGameVersionMarker();
 
   const saved = loadSavedState();
   if (saved && saved.phase !== 'done' && savedRulesMatch(saved)) {

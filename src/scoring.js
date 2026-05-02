@@ -39,11 +39,11 @@ export function scoreCategory(counts, cat, options = scoringOptions) {
     const nz = counts.filter(c => c > 0).sort((a, b) => a - b);
     const isFullHouse = nz.length === 2 && nz[0] === 2 && nz[1] === 3;
     if (!isFullHouse) return 0;
-    return scoringMode(options) === 'sum' ? diceSum : 25;
+    return 25;
   }
   if (cat === 9)  return straightScore(counts, 4, 30, options);
   if (cat === 10) return straightScore(counts, 5, 40, options);
-  if (cat === 11) return maxC === 5 ? (scoringMode(options) === 'sum' ? diceSum : 50) : 0;
+  if (cat === 11) return maxC === 5 ? 50 : 0;
   if (cat === 12) return diceSum;
   if (cat === 13) {
     for (let i = 5; i >= 0; i--) if (counts[i] >= 2) return (i + 1) * 2;

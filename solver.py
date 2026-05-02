@@ -144,7 +144,7 @@ def score(counts, cat):
         nonzero = sorted(c for c in counts if c > 0)
         if nonzero != [2, 3]:
             return 0
-        return dice_sum if SCORING_MODE == "sum" else 25
+        return 25
     elif cat == 9:
         return straight_score(counts, 4, 30)
     elif cat == 10:
@@ -152,7 +152,7 @@ def score(counts, cat):
     elif cat == 11:
         if max(counts) != 5:
             return 0
-        return dice_sum if SCORING_MODE == "sum" else 50
+        return 50
     elif cat == 12:
         return dice_sum
     elif cat == 13:

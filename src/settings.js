@@ -1,5 +1,7 @@
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from './storage.js';
 
+export const GAME_VERSION_HASH = import.meta.env?.VITE_YAHTZEE_COMMIT_HASH ?? 'dev';
+
 export let settings = loadSettings();
 
 let mediaQuery = null;
@@ -41,6 +43,12 @@ export function applyThemePreference(config = settings) {
   document.documentElement.dataset.theme = resolveTheme(config);
 }
 
+export function applyGameVersionMarker(doc = globalThis.document) {
+  if (typeof doc === 'undefined') return;
+  const marker = doc.getElementById('settings-version-hash');
+  if (marker) marker.textContent = GAME_VERSION_HASH;
+}
+
 function ensureThemeListener() {
   if (typeof window === 'undefined' || !window.matchMedia || mediaQuery) return;
   mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
@@ -62,3 +70,4 @@ export function resetSettings() {
 
 ensureThemeListener();
 applyThemePreference(settings);
+applyGameVersionMarker();
