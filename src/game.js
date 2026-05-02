@@ -6,6 +6,7 @@ import { computeOptimalKeep, evAfterKeep, bestPlacement, catEV } from './policy.
 import { buildKeepFeedback, buildScoreFeedback } from './feedback.js';
 import { saveGameState, clearSavedState, saveCompletedGame } from './storage.js';
 import { settings, getAllUsedMask, getDisabledCategoryMask } from './settings.js';
+import { confirmAction, zeroScoreConfirmMessage } from './confirm.js';
 // render.js imports this module too — circular is safe since all cross-calls happen at runtime
 import { render, renderAllGamesHistory, animateNewDice, resetDiceToTray, layoutDiceForState } from './render.js';
 
@@ -156,7 +157,13 @@ export function shouldConfirmZeroScore(counts, selectedCat, openMask) {
 }
 
 function confirmZeroScore(cat) {
-  return confirm(`Are you sure you want to score 0 in ${CAT_NAMES[cat]}? Other open categories can score points.`);
+  return confirmAction({
+    title: 'Score zero?',
+    message: zeroScoreConfirmMessage(CAT_NAMES[cat]),
+    confirmLabel: 'Score 0',
+    cancelLabel: 'Choose another',
+    tone: 'danger',
+  });
 }
 
 export function toggleDieKeep(index) {
@@ -269,8 +276,22 @@ export function handleScoreClick(cat) {
   if (state.openMask & (1 << cat)) return;
 
   const counts    = diceCounts(state.dice);
+  if (shouldConfirmZeroScore(counts, cat, state.openMask)) {
+    confirmZeroScore(cat).then((confirmed) => {
+      if (confirmed) commitScoreClick(cat);
+    });
+    return;
+  }
+
+  commitScoreClick(cat);
+}
+
+function commitScoreClick(cat) {
+  if (state.phase !== 'score' || state.diceAnimating) return;
+  if (state.openMask & (1 << cat)) return;
+
+  const counts    = diceCounts(state.dice);
   const userScore = scoreCategory(counts, cat);
-  if (shouldConfirmZeroScore(counts, cat, state.openMask) && !confirmZeroScore(cat)) return;
 
   const userEV    = catEV(counts, state.openMask, state.upperCapped, cat);
   const opt       = bestPlacement(counts, state.openMask, state.upperCapped);

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import * as gameModule from '../src/game.js';
 import * as renderModule from '../src/render.js';
+import { setConfirmHandlerForTests } from '../src/confirm.js';
 
 test('dice can be visually toggled while selecting a score', () => {
   assert.equal(typeof gameModule.canToggleDieKeep, 'function');
@@ -88,14 +89,12 @@ test('score phase drops stale kept-order entries before visual toggles continue'
   );
 });
 
-test('zero score selection asks for confirmation when positive alternatives remain', () => {
-  const originalConfirm = globalThis.confirm;
+test('zero score selection waits for app confirmation when positive alternatives remain', async () => {
   let prompt = '';
-  globalThis.confirm = (message) => {
+  setConfirmHandlerForTests(({ message }) => {
     prompt = message;
     return false;
-  };
-
+  });
   try {
     Object.assign(gameModule.state, {
       dice: [1, 1, 1, 2, 3],
@@ -109,13 +108,14 @@ test('zero score selection asks for confirmation when positive alternatives rema
     });
 
     gameModule.handleScoreClick(11);
+    await Promise.resolve();
 
     assert.match(prompt, /score 0/i);
     assert.equal(gameModule.state.phase, 'score');
     assert.equal(gameModule.state.pendingCat, null);
     assert.equal(gameModule.state.decisions, 0);
   } finally {
-    globalThis.confirm = originalConfirm;
+    setConfirmHandlerForTests(null);
   }
 });
 

@@ -441,6 +441,65 @@
   cursor: pointer;
 }
 
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  place-items: center;
+  padding: 1rem;
+  background: oklch(0% 0 0 / 0.42);
+}
+
+.confirm-overlay.open {
+  display: grid;
+}
+
+.confirm-panel {
+  width: min(420px, 100%);
+  padding: 1.05rem;
+  border: var(--border-mid) solid var(--rule-heavy);
+  border-radius: var(--radius-control);
+  background: var(--sheet);
+  color: var(--ink);
+  box-shadow: 0 24px 80px oklch(0% 0 0 / 0.28);
+}
+
+.confirm-panel h2 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: var(--t-base);
+  font-weight: 700;
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.confirm-panel p {
+  margin: 0.55rem 0 0;
+  color: var(--ink-mid);
+  font-family: var(--font-print);
+  font-size: var(--t-sm);
+  line-height: var(--lh-snug);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.confirm-actions .btn {
+  min-height: 2.5rem;
+  padding-inline: 1rem;
+  font-size: var(--t-xs);
+}
+
+.confirm-panel[data-tone="danger"] .confirm-accept {
+  background: var(--err);
+  color: var(--sheet);
+}
+
 .scorecard-panel {
   position: sticky;
   top: 1.5rem;

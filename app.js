@@ -9,6 +9,7 @@ import { render, renderAllGamesHistory } from './src/render.js';
 import { initKeyboardControls } from './src/keyboard.js';
 import { activateScorecardTab, initMobileTabs } from './src/mobile-tabs.js';
 import { initShakeToRoll } from './src/shake.js';
+import { confirmAction } from './src/confirm.js';
 
 function isUnplayedFirstTurn(saved) {
   return saved
@@ -154,8 +155,15 @@ function initSettingsDialog(shakeToRoll) {
   });
   btnClose.addEventListener('click', () => dialog.close());
 
-  btnDeleteHistory.addEventListener('click', () => {
-    if (!confirm('Delete all completed game history?')) return;
+  btnDeleteHistory.addEventListener('click', async () => {
+    const confirmed = await confirmAction({
+      title: 'Delete history?',
+      message: 'Delete all completed game history? This keeps your current game.',
+      confirmLabel: 'Delete history',
+      cancelLabel: 'Keep history',
+      tone: 'danger',
+    });
+    if (!confirmed) return;
     clearAllGames();
     renderAllGamesHistory();
   });
