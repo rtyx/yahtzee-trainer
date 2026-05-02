@@ -147,13 +147,6 @@ function initSettingsDialog(shakeToRoll) {
     return next.combinationScore !== settings.combinationScore || next.twoPairsEnabled !== settings.twoPairsEnabled;
   }
 
-  function hasScoredProgress() {
-    return state.turn > 1
-      || state.decisions > 0
-      || state.openMask !== getDisabledCategoryMask()
-      || state.scores.some(score => score != null);
-  }
-
   btnOpen.addEventListener('click', () => {
     fillForm();
     dialog.showModal();
@@ -170,8 +163,6 @@ function initSettingsDialog(shakeToRoll) {
     if (btnSave.disabled) return;
     const next = formSettings();
     const shouldRestart = hasRuleChanges(next);
-    if (shouldRestart && hasScoredProgress() && !confirm('Rule changes start a fresh game. Continue?')) return;
-
     const originalText = btnSave.textContent;
     btnSave.disabled = true;
     btnSave.textContent = 'Saving...';

@@ -36,25 +36,25 @@ test('decision feedback pauses only when enabled', () => {
   assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: false }), false);
 });
 
-test('fresh ready games can be restarted without confirmation', () => {
-  assert.equal(typeof gameModule.shouldConfirmRestart, 'function');
+test('new game never requires a blocking confirmation', () => {
+  assert.equal(typeof gameModule.canRestartImmediately, 'function');
   assert.equal(
-    gameModule.shouldConfirmRestart({
+    gameModule.canRestartImmediately({
       openMask: 0,
       turn: 1,
       phase: 'ready',
       rerollsLeft: 2,
       decisions: 0,
     }, 0),
-    false,
+    true,
   );
   assert.equal(
-    gameModule.shouldConfirmRestart({
+    gameModule.canRestartImmediately({
       openMask: 0,
-      turn: 1,
+      turn: 2,
       phase: 'keep',
-      rerollsLeft: 2,
-      decisions: 0,
+      rerollsLeft: 1,
+      decisions: 3,
     }, 0),
     true,
   );
