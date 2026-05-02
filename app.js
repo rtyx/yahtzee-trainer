@@ -129,6 +129,13 @@ function initSettingsDialog() {
     return next.fullHouseScore !== settings.fullHouseScore || next.twoPairsEnabled !== settings.twoPairsEnabled;
   }
 
+  function hasScoredProgress() {
+    return state.turn > 1
+      || state.decisions > 0
+      || state.openMask !== getDisabledCategoryMask()
+      || state.scores.some(score => score != null);
+  }
+
   btnOpen.addEventListener('click', () => {
     fillForm();
     dialog.showModal();
@@ -144,11 +151,7 @@ function initSettingsDialog() {
   btnSave.addEventListener('click', () => {
     const next = formSettings();
     const shouldRestart = hasRuleChanges(next);
-    const gameStarted = state.turn > 1 || state.openMask !== getDisabledCategoryMask() || state.phase !== 'ready';
-    if (shouldRestart && gameStarted && !confirm('Rule changes start a fresh game. Continue?')) {
-      fillForm();
-      return;
-    }
+    if (shouldRestart && hasScoredProgress() && !confirm('Rule changes start a fresh game. Continue?')) return;
 
     updateSettings(next);
     setScoringOptions(next);
