@@ -63,3 +63,34 @@ test('score phase drops stale kept-order entries before visual toggles continue'
     },
   );
 });
+
+test('zero score selection asks for confirmation when positive alternatives remain', () => {
+  const originalConfirm = globalThis.confirm;
+  let prompt = '';
+  globalThis.confirm = (message) => {
+    prompt = message;
+    return false;
+  };
+
+  try {
+    Object.assign(gameModule.state, {
+      dice: [1, 1, 1, 2, 3],
+      phase: 'score',
+      diceAnimating: false,
+      openMask: 0,
+      upperCapped: 0,
+      pendingCat: null,
+      decisions: 0,
+      correct: 0,
+    });
+
+    gameModule.handleScoreClick(11);
+
+    assert.match(prompt, /score 0/i);
+    assert.equal(gameModule.state.phase, 'score');
+    assert.equal(gameModule.state.pendingCat, null);
+    assert.equal(gameModule.state.decisions, 0);
+  } finally {
+    globalThis.confirm = originalConfirm;
+  }
+});

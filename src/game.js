@@ -1,4 +1,4 @@
-import { UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
+import { CAT_NAMES, UPPER_THRESHOLD, UPPER_BONUS } from './constants.js';
 import { playDieToggle, playGameComplete, playRoll, playScoreMark, playVerdict } from './audio.js';
 import { diceCounts, keptCounts, arraysEqual } from './dice.js';
 import { scoreCategory } from './scoring.js';
@@ -137,6 +137,24 @@ export function getScorePhaseKeepState(kept, keptOrder) {
   };
 }
 
+export function hasPositiveScoringAlternative(counts, selectedCat, openMask) {
+  for (let cat = 0; cat < state.scores.length; cat++) {
+    if (cat === selectedCat) continue;
+    if (openMask & (1 << cat)) continue;
+    if (scoreCategory(counts, cat) > 0) return true;
+  }
+  return false;
+}
+
+export function shouldConfirmZeroScore(counts, selectedCat, openMask) {
+  return scoreCategory(counts, selectedCat) === 0
+    && hasPositiveScoringAlternative(counts, selectedCat, openMask);
+}
+
+function confirmZeroScore(cat) {
+  return confirm(`Are you sure you want to score 0 in ${CAT_NAMES[cat]}? Other open categories can score points.`);
+}
+
 export function toggleDieKeep(index) {
   if (!canToggleDieKeep()) return;
   if (index < 0 || index >= state.kept.length) return;
@@ -248,6 +266,8 @@ export function handleScoreClick(cat) {
 
   const counts    = diceCounts(state.dice);
   const userScore = scoreCategory(counts, cat);
+  if (shouldConfirmZeroScore(counts, cat, state.openMask) && !confirmZeroScore(cat)) return;
+
   const userEV    = catEV(counts, state.openMask, state.upperCapped, cat);
   const opt       = bestPlacement(counts, state.openMask, state.upperCapped);
   const isOpt     = cat === opt.cat || Math.abs(userEV - opt.ev) < 0.05;
