@@ -94,3 +94,15 @@ test('zero score selection asks for confirmation when positive alternatives rema
     globalThis.confirm = originalConfirm;
   }
 });
+
+test('zero score selection does not need confirmation when all alternatives are zero', () => {
+  const allUsedMask = (1 << 15) - 1;
+  const selectedCat = 11;
+  const otherZeroCat = 8;
+  const openMask = allUsedMask & ~(1 << selectedCat) & ~(1 << otherZeroCat);
+
+  assert.equal(
+    gameModule.shouldConfirmZeroScore([1, 1, 1, 1, 1, 0], selectedCat, openMask),
+    false,
+  );
+});
