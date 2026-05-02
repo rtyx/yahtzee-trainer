@@ -46,10 +46,18 @@ function canRequestMotionPermission(win) {
 export function initShakeToRoll({
   window: win = globalThis.window,
   document: doc = globalThis.document,
+  enabled = false,
   onRoll,
   canRoll,
 } = {}) {
-  if (!win || !doc || !isMotionAvailable(win)) return () => {};
+  if (!win || !doc || !isMotionAvailable(win)) {
+    return {
+      supported: false,
+      enabled: false,
+      setEnabled: async () => false,
+      stop: () => {},
+    };
+  }
 
   const controller = createShakeRollController({ onRoll, canRoll });
   let listening = false;
@@ -66,24 +74,38 @@ export function initShakeToRoll({
     listening = false;
   }
 
-  if (!canRequestMotionPermission(win)) {
-    startListening();
-    return stopListening;
-  }
-
-  async function requestMotionPermission() {
+  async function requestPermission() {
+    if (!canRequestMotionPermission(win)) return true;
     try {
-      const permission = await win.DeviceMotionEvent.requestPermission();
-      if (permission === 'granted') startListening();
+      return await win.DeviceMotionEvent.requestPermission() === 'granted';
     } catch (_) {
-      // Motion permission can be blocked by the browser or OS; the button remains available.
+      return false;
     }
   }
 
-  doc.addEventListener('pointerdown', requestMotionPermission, { once: true, passive: true, capture: true });
+  const api = {
+    supported: true,
+    get enabled() {
+      return listening;
+    },
+    async setEnabled(nextEnabled) {
+      if (!nextEnabled) {
+        stopListening();
+        return false;
+      }
 
-  return () => {
-    doc.removeEventListener('pointerdown', requestMotionPermission, { capture: true });
-    stopListening();
+      if (!await requestPermission()) {
+        stopListening();
+        return false;
+      }
+
+      startListening();
+      return true;
+    },
+    stop: stopListening,
   };
+
+  if (enabled) startListening();
+
+  return api;
 }

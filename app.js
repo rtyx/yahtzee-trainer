@@ -51,13 +51,14 @@ async function init() {
   document.getElementById('btn-restart').addEventListener('click', restartGame);
   initKeyboardControls();
   initMobileTabs();
-  initShakeToRoll({
+  const shakeToRoll = initShakeToRoll({
+    enabled: settings.shakeToRollEnabled,
     onRoll: handleKeepSubmit,
     canRoll: () => (state.phase === 'ready' || (state.phase === 'keep' && state.kept.some(kept => !kept))) && !state.diceAnimating,
   });
   document.addEventListener('pointerdown', primeAudio, { once: true, passive: true, capture: true });
 
-  initSettingsDialog();
+  initSettingsDialog(shakeToRoll);
 
   const saved = loadSavedState();
   if (saved && saved.phase !== 'done' && savedRulesMatch(saved)) {
@@ -85,7 +86,7 @@ async function init() {
 
 init();
 
-function initSettingsDialog() {
+function initSettingsDialog(shakeToRoll) {
   const dialog = document.getElementById('settings-dialog');
   const btnOpen = document.getElementById('btn-settings');
   const btnClose = document.getElementById('btn-settings-close');
@@ -97,6 +98,7 @@ function initSettingsDialog() {
   const upperSumInput = document.getElementById('setting-upper-sum');
   const finalSumInput = document.getElementById('setting-final-sum');
   const decisionFeedbackInput = document.getElementById('setting-decision-feedback');
+  const shakeRollInput = document.getElementById('setting-shake-roll');
   const soundInput = document.getElementById('setting-sound');
   const themeInputs = [...document.querySelectorAll('input[name="theme"]')];
 
@@ -109,6 +111,8 @@ function initSettingsDialog() {
     upperSumInput.checked = current.showUpperSectionSum;
     finalSumInput.checked = current.showFinalSumBeforeDone;
     decisionFeedbackInput.checked = current.showDecisionFeedback;
+    shakeRollInput.checked = current.shakeToRollEnabled;
+    shakeRollInput.disabled = !shakeToRoll.supported;
     soundInput.checked = current.soundEnabled;
   }
 
@@ -120,6 +124,7 @@ function initSettingsDialog() {
       showUpperSectionSum: upperSumInput.checked,
       showFinalSumBeforeDone: finalSumInput.checked,
       showDecisionFeedback: decisionFeedbackInput.checked,
+      shakeToRollEnabled: shakeRollInput.checked,
       soundEnabled: soundInput.checked,
       theme: themeInputs.find(input => input.checked)?.value ?? settings.theme,
     };
@@ -148,10 +153,21 @@ function initSettingsDialog() {
     renderAllGamesHistory();
   });
 
-  btnSave.addEventListener('click', () => {
+  btnSave.addEventListener('click', async () => {
     const next = formSettings();
     const shouldRestart = hasRuleChanges(next);
     if (shouldRestart && hasScoredProgress() && !confirm('Rule changes start a fresh game. Continue?')) return;
+
+    if (next.shakeToRollEnabled) {
+      const activated = await shakeToRoll.setEnabled(true);
+      if (!activated) {
+        next.shakeToRollEnabled = false;
+        shakeRollInput.checked = false;
+        alert('Shake to roll could not be activated. On iPhone, allow Motion & Orientation access when prompted, then try again.');
+      }
+    } else {
+      await shakeToRoll.setEnabled(false);
+    }
 
     updateSettings(next);
     setScoringOptions(next);

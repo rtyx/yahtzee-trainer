@@ -12,6 +12,7 @@ export const DEFAULT_SETTINGS = {
   showUpperSectionSum: true,
   showFinalSumBeforeDone: true,
   showDecisionFeedback: true,
+  shakeToRollEnabled: false,
 };
 
 export function saveGameState(snap) {
@@ -62,6 +63,7 @@ function normalizeSettings(raw) {
   settings.showUpperSectionSum = settings.showUpperSectionSum !== false;
   settings.showFinalSumBeforeDone = settings.showFinalSumBeforeDone !== false;
   settings.showDecisionFeedback = settings.showDecisionFeedback !== false;
+  settings.shakeToRollEnabled = settings.shakeToRollEnabled === true;
   if (!['system', 'light', 'dark'].includes(settings.theme)) settings.theme = DEFAULT_SETTINGS.theme;
   return settings;
 }
