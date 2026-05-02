@@ -62,7 +62,7 @@ export function saveState() {
     hasRolled:   state.hasRolled,
     readyInTray: state.readyInTray,
     settings:    {
-      fullHouseScore: settings.fullHouseScore,
+      combinationScore: settings.combinationScore,
       twoPairsEnabled: settings.twoPairsEnabled,
     },
   });

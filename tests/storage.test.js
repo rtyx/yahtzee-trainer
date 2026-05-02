@@ -48,7 +48,7 @@ test('settings round-trip and normalize invalid values', () => {
   globalThis.localStorage = createStorage();
 
   saveSettings({
-    fullHouseScore: 'sum',
+    combinationScore: 'sum',
     twoPairsEnabled: false,
     soundEnabled: false,
     theme: 'light',
@@ -60,7 +60,7 @@ test('settings round-trip and normalize invalid values', () => {
   });
 
   assert.deepEqual(loadSettings(), {
-    fullHouseScore: 'sum',
+    combinationScore: 'sum',
     twoPairsEnabled: false,
     soundEnabled: false,
     theme: 'light',
@@ -72,7 +72,7 @@ test('settings round-trip and normalize invalid values', () => {
   });
 
   saveSettings({
-    fullHouseScore: 'anything',
+    combinationScore: 'anything',
     twoPairsEnabled: true,
     soundEnabled: true,
     theme: 'sepia',
@@ -84,4 +84,11 @@ test('settings round-trip and normalize invalid values', () => {
   });
 
   assert.deepEqual(loadSettings(), DEFAULT_SETTINGS);
+});
+
+test('settings migrate legacy full-house scoring to combination scoring', () => {
+  globalThis.localStorage = createStorage();
+  globalThis.localStorage.setItem('yahtzee_settings', JSON.stringify({ fullHouseScore: 'sum' }));
+
+  assert.equal(loadSettings().combinationScore, 'sum');
 });

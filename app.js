@@ -22,8 +22,15 @@ function isUnplayedFirstTurn(saved) {
 
 function savedRulesMatch(saved) {
   if (!saved?.settings) return true;
-  return saved.settings.fullHouseScore === settings.fullHouseScore
+  const savedCombinationScore = saved.settings.combinationScore ?? saved.settings.fullHouseScore;
+  return savedCombinationScore === settings.combinationScore
     && saved.settings.twoPairsEnabled === settings.twoPairsEnabled;
+}
+
+async function loadPolicyFor(config) {
+  const resp = await fetch(config.combinationScore === 'sum' ? 'policy-sum.json' : 'policy.json');
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  loadPolicy(await resp.json());
 }
 
 async function init() {
@@ -32,9 +39,7 @@ async function init() {
   applyThemePreference(settings);
 
   try {
-    const resp = await fetch('policy.json');
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    loadPolicy(await resp.json());
+    await loadPolicyFor(settings);
   } catch (_) {
     document.getElementById('loading').innerHTML = `
       <p style="color:var(--red,oklch(46% 0.17 22));text-align:center;max-width:320px;font-family:var(--font-sans);font-size:0.9rem;line-height:1.6">
@@ -100,7 +105,7 @@ function initSettingsDialog(shakeToRoll) {
   const btnClose = document.getElementById('btn-settings-close');
   const btnSave = document.getElementById('btn-settings-save');
   const btnDeleteHistory = document.getElementById('btn-delete-history');
-  const fullHouseInputs = [...document.querySelectorAll('input[name="full-house-score"]')];
+  const combinationScoreInputs = [...document.querySelectorAll('input[name="combination-score"]')];
   const twoPairsInput = document.getElementById('setting-two-pairs');
   const previewPotentialInput = document.getElementById('setting-preview-potential');
   const upperSumInput = document.getElementById('setting-upper-sum');
@@ -112,7 +117,7 @@ function initSettingsDialog(shakeToRoll) {
 
   function fillForm() {
     const current = settings;
-    fullHouseInputs.forEach(input => { input.checked = input.value === current.fullHouseScore; });
+    combinationScoreInputs.forEach(input => { input.checked = input.value === current.combinationScore; });
     themeInputs.forEach(input => { input.checked = input.value === current.theme; });
     twoPairsInput.checked = current.twoPairsEnabled;
     previewPotentialInput.checked = current.previewPotentialScores;
@@ -126,7 +131,7 @@ function initSettingsDialog(shakeToRoll) {
 
   function formSettings() {
     return {
-      fullHouseScore: fullHouseInputs.find(input => input.checked)?.value ?? settings.fullHouseScore,
+      combinationScore: combinationScoreInputs.find(input => input.checked)?.value ?? settings.combinationScore,
       twoPairsEnabled: twoPairsInput.checked,
       previewPotentialScores: previewPotentialInput.checked,
       showUpperSectionSum: upperSumInput.checked,
@@ -139,7 +144,7 @@ function initSettingsDialog(shakeToRoll) {
   }
 
   function hasRuleChanges(next) {
-    return next.fullHouseScore !== settings.fullHouseScore || next.twoPairsEnabled !== settings.twoPairsEnabled;
+    return next.combinationScore !== settings.combinationScore || next.twoPairsEnabled !== settings.twoPairsEnabled;
   }
 
   function hasScoredProgress() {
@@ -177,6 +182,7 @@ function initSettingsDialog(shakeToRoll) {
       await shakeToRoll.setEnabled(false);
     }
 
+    if (shouldRestart) await loadPolicyFor(next);
     updateSettings(next);
     setScoringOptions(next);
     setSoundEnabled(next.soundEnabled);

@@ -17,6 +17,7 @@ Performance strategy:
 - This reduces each reroll step to matrix operations.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -115,25 +116,43 @@ for ms_idx, ms in enumerate(ALL_MULTISETS):
 # Scoring tables
 # ---------------------------------------------------------------------------
 
+SCORING_MODE = "fixed"
+
+def kind_score(counts, size, fixed_score):
+    for i in range(5, -1, -1):
+        if counts[i] >= size:
+            return (i + 1) * size if SCORING_MODE == "sum" else fixed_score
+    return 0
+
+def straight_score(counts, length, fixed_score):
+    vals = set(i + 1 for i, c in enumerate(counts) if c > 0)
+    for start in range(1, 8 - length):
+        run = range(start, start + length)
+        if all(v in vals for v in run):
+            return sum(run) if SCORING_MODE == "sum" else fixed_score
+    return 0
+
 def score(counts, cat):
     dice_sum = sum((i + 1) * c for i, c in enumerate(counts))
     if cat < 6:
         return (cat + 1) * counts[cat]
     elif cat == 6:
-        return dice_sum if max(counts) >= 3 else 0
+        return kind_score(counts, 3, 20)
     elif cat == 7:
-        return dice_sum if max(counts) >= 4 else 0
+        return kind_score(counts, 4, 30)
     elif cat == 8:
         nonzero = sorted(c for c in counts if c > 0)
-        return 25 if nonzero == [2, 3] else 0
+        if nonzero != [2, 3]:
+            return 0
+        return dice_sum if SCORING_MODE == "sum" else 25
     elif cat == 9:
-        vals = set(i + 1 for i, c in enumerate(counts) if c > 0)
-        return 30 if any({a, a + 1, a + 2, a + 3} <= vals for a in [1, 2, 3]) else 0
+        return straight_score(counts, 4, 30)
     elif cat == 10:
-        vals = set(i + 1 for i, c in enumerate(counts) if c > 0)
-        return 40 if vals in ({1, 2, 3, 4, 5}, {2, 3, 4, 5, 6}) else 0
+        return straight_score(counts, 5, 40)
     elif cat == 11:
-        return 50 if max(counts) == 5 else 0
+        if max(counts) != 5:
+            return 0
+        return dice_sum if SCORING_MODE == "sum" else 50
     elif cat == 12:
         return dice_sum
     elif cat == 13:
@@ -150,11 +169,17 @@ def score(counts, cat):
 scores_table = np.zeros((N_MS, 15), dtype=np.float64)
 upper_table  = np.zeros((N_MS, 15), dtype=np.int32)
 
-for _i, _ms in enumerate(ALL_MULTISETS):
-    for _c in range(15):
-        scores_table[_i, _c] = score(_ms, _c)
-        if _c < 6:
-            upper_table[_i, _c] = (_c + 1) * _ms[_c]
+def build_scoring_tables():
+    global scores_table, upper_table
+    scores_table = np.zeros((N_MS, 15), dtype=np.float64)
+    upper_table  = np.zeros((N_MS, 15), dtype=np.int32)
+    for _i, _ms in enumerate(ALL_MULTISETS):
+        for _c in range(15):
+            scores_table[_i, _c] = score(_ms, _c)
+            if _c < 6:
+                upper_table[_i, _c] = (_c + 1) * _ms[_c]
+
+build_scoring_tables()
 
 # ---------------------------------------------------------------------------
 # Value table
@@ -301,7 +326,14 @@ def compute_policy():
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scoring", choices=("fixed", "sum"), default="fixed")
+    args = parser.parse_args()
+    SCORING_MODE = args.scoring
+    build_scoring_tables()
+
     print("Starting Yahtzee DP solver...", flush=True)
+    print(f"  Scoring: {SCORING_MODE}", flush=True)
     print(f"  Dice multisets: {N_MS}", flush=True)
     print(f"  Categories: 15 (including One Pair, Two Pairs)", flush=True)
     print(f"  State space: {ALL_USED+1} masks x 64 = {(ALL_USED+1)*64} states", flush=True)
@@ -325,8 +357,9 @@ if __name__ == "__main__":
     print(f"Expected total score (V[0][0]): {V[0][0]:.4f}", flush=True)
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    out_path = os.path.join(script_dir, "policy.json")
+    out_name = "policy-sum.json" if SCORING_MODE == "sum" else "policy.json"
+    out_path = os.path.join(script_dir, out_name)
     print(f"Writing {out_path} ...", flush=True)
     with open(out_path, "w") as f:
         json.dump({"V": V.tolist()}, f, separators=(",", ":"))
-    print(f"Done. policy.json written ({os.path.getsize(out_path) // 1024} KB)", flush=True)
+    print(f"Done. {out_name} written ({os.path.getsize(out_path) // 1024} KB)", flush=True)

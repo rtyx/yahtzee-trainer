@@ -4,7 +4,7 @@ const STORAGE_KEY_SOUND   = 'yahtzee_sound_enabled';
 const STORAGE_KEY_SETTINGS = 'yahtzee_settings';
 
 export const DEFAULT_SETTINGS = {
-  fullHouseScore: 'fixed',
+  combinationScore: 'fixed',
   twoPairsEnabled: true,
   soundEnabled: true,
   theme: 'system',
@@ -56,7 +56,15 @@ export function clearAllGames() {
 
 function normalizeSettings(raw) {
   const settings = { ...DEFAULT_SETTINGS, ...(raw && typeof raw === 'object' ? raw : {}) };
-  if (!['fixed', 'sum'].includes(settings.fullHouseScore)) settings.fullHouseScore = DEFAULT_SETTINGS.fullHouseScore;
+  if (
+    raw && typeof raw === 'object'
+    && !Object.prototype.hasOwnProperty.call(raw, 'combinationScore')
+    && ['fixed', 'sum'].includes(raw.fullHouseScore)
+  ) {
+    settings.combinationScore = settings.fullHouseScore;
+  }
+  delete settings.fullHouseScore;
+  if (!['fixed', 'sum'].includes(settings.combinationScore)) settings.combinationScore = DEFAULT_SETTINGS.combinationScore;
   settings.twoPairsEnabled = settings.twoPairsEnabled !== false;
   settings.soundEnabled = settings.soundEnabled !== false;
   settings.previewPotentialScores = settings.previewPotentialScores !== false;
