@@ -1,5 +1,19 @@
 dist/policy.json
 
+# Playwright generated artifacts
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+.playwright-mcp/
+playwright/.cache/
+*.webm
+*.trace
+/yahtzee-desktop-mobile-tabs-check.png
+/yahtzee-mobile-dice-tab-after-size.png
+/yahtzee-mobile-dice-tab.png
+/yahtzee-mobile-scorecard-tab.png
+
 # MemPalace per-project files (issue #185)
 mempalace.yaml
 entities.json
