@@ -6,21 +6,41 @@ import { settings, getActiveCategoryCount, getLowerOrder, getScorecardKeyOrder }
 // game.js imports this module too — circular is safe since all cross-calls happen at runtime
 import { state, handleScoreClick, startGame, toggleDieKeep } from './game.js';
 
-export function getScorecardBonusState(upperScore) {
-  const achieved = upperScore >= UPPER_THRESHOLD;
+function isGameDone(phase) {
+  return phase === 'done';
+}
+
+export function getPotentialScoreText(points, config = settings) {
+  return config.previewPotentialScores ? String(points) : '—';
+}
+
+export function getUpperSumText(upperScore, phase, config = settings) {
+  return config.showUpperSectionSum || isGameDone(phase) ? String(upperScore) : '—';
+}
+
+export function getFinalSumText(totalScore, phase, config = settings) {
+  return config.showFinalSumBeforeDone || isGameDone(phase) ? String(totalScore) : '—';
+}
+
+export function getScorecardBonusState(upperScore, phase = 'done', config = settings) {
+  const hideUpperMath = !config.showUpperSectionSum && !isGameDone(phase);
+  const achieved = !hideUpperMath && upperScore >= UPPER_THRESHOLD;
   const remaining = Math.max(UPPER_THRESHOLD - upperScore, 0);
 
   return {
     achieved,
     label: achieved ? 'Bonus erreicht' : `Bonus +${UPPER_BONUS}`,
-    detail: achieved
+    detail: hideUpperMath
+      ? `ab ${UPPER_THRESHOLD} Punkten`
+      : achieved
       ? `${UPPER_THRESHOLD} von ${UPPER_THRESHOLD} Punkten in der oberen Sektion`
       : `ab ${UPPER_THRESHOLD} Punkten, noch ${remaining} nötig`,
     scoreText: achieved ? String(UPPER_BONUS) : '—',
   };
 }
 
-export function buildScorecardSelectionLabel(cat, points) {
+export function buildScorecardSelectionLabel(cat, points, config = settings) {
+  if (!config.previewPotentialScores) return `${CAT_NAMES[cat]} auswählen`;
   return `${CAT_NAMES[cat]} auswählen, ${points} Punkte eintragen`;
 }
 
@@ -137,7 +157,7 @@ function renderHeader() {
   const acc = state.decisions >= 5
     ? Math.round(100 * state.correct / state.decisions) + '%' : '—';
   document.getElementById('stat-turn-val').textContent  = `${state.turn}/${getActiveCategoryCount(settings)}`;
-  document.getElementById('stat-score-val').textContent = state.totalScore;
+  document.getElementById('stat-score-val').textContent = getFinalSumText(state.totalScore, state.phase, settings);
   document.getElementById('stat-acc-val').textContent   = acc;
 }
 
@@ -311,7 +331,7 @@ function renderScorecard() {
   const counts  = isScore ? diceCounts(state.dice) : null;
   const scorecardKeyByCat = getScorecardKeyByCat();
 
-  const bonusState = getScorecardBonusState(state.upper);
+  const bonusState = getScorecardBonusState(state.upper, state.phase, settings);
 
   function dataRow(cat) {
     const used     = !!(state.openMask & (1 << cat));
@@ -327,10 +347,10 @@ function renderScorecard() {
       tr.className = 'sc-data-row clickable';
       tr.tabIndex = 0;
       tr.setAttribute('role', 'button');
-      tr.setAttribute('aria-label', buildScorecardSelectionLabel(cat, pot));
+      tr.setAttribute('aria-label', buildScorecardSelectionLabel(cat, pot, settings));
       tr.innerHTML = `
         <td class="sc-name-cell"><span class="sc-name-text">${CAT_NAMES[cat]}</span><span class="keycap sc-keycap">${key}</span></td>
-        <td class="sc-score-cell${pot === 0 ? ' zero' : ''}">${pot}</td>`;
+        <td class="sc-score-cell${settings.previewPotentialScores && pot === 0 ? ' zero' : ''}">${getPotentialScoreText(pot, settings)}</td>`;
       tr.addEventListener('click', () => handleScoreClick(cat));
       tr.addEventListener('keydown', (event) => handleScorecardRowKeydown(event, cat));
     } else {
@@ -360,7 +380,7 @@ function renderScorecard() {
   // Summe
   const sumRow = document.createElement('tr');
   sumRow.className = 'sc-sub-row';
-  sumRow.innerHTML = `<td class="sc-name-cell">Summe</td><td class="sc-score-cell">${state.upper}</td>`;
+  sumRow.innerHTML = `<td class="sc-name-cell">Summe</td><td class="sc-score-cell">${getUpperSumText(state.upper, state.phase, settings)}</td>`;
   tbody.appendChild(sumRow);
 
   // Bonus
@@ -384,7 +404,7 @@ function renderScorecard() {
   // Total
   const totalRow = document.createElement('tr');
   totalRow.className = 'sc-total-row';
-  totalRow.innerHTML = `<td class="sc-name-cell">Endsumme</td><td class="sc-score-cell">${state.totalScore}</td>`;
+  totalRow.innerHTML = `<td class="sc-name-cell">Endsumme</td><td class="sc-score-cell">${getFinalSumText(state.totalScore, state.phase, settings)}</td>`;
   tbody.appendChild(totalRow);
 
   table.appendChild(tbody);

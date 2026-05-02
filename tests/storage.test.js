@@ -52,6 +52,9 @@ test('settings round-trip and normalize invalid values', () => {
     twoPairsEnabled: false,
     soundEnabled: false,
     theme: 'light',
+    previewPotentialScores: false,
+    showUpperSectionSum: false,
+    showFinalSumBeforeDone: false,
   });
 
   assert.deepEqual(loadSettings(), {
@@ -59,6 +62,9 @@ test('settings round-trip and normalize invalid values', () => {
     twoPairsEnabled: false,
     soundEnabled: false,
     theme: 'light',
+    previewPotentialScores: false,
+    showUpperSectionSum: false,
+    showFinalSumBeforeDone: false,
   });
 
   saveSettings({
@@ -66,6 +72,9 @@ test('settings round-trip and normalize invalid values', () => {
     twoPairsEnabled: true,
     soundEnabled: true,
     theme: 'sepia',
+    previewPotentialScores: true,
+    showUpperSectionSum: true,
+    showFinalSumBeforeDone: true,
   });
 
   assert.deepEqual(loadSettings(), DEFAULT_SETTINGS);

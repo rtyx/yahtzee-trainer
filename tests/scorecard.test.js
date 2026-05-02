@@ -35,6 +35,30 @@ test('score-selection label announces category and potential points', () => {
   );
 });
 
+test('score-selection label can hide potential points', () => {
+  assert.equal(
+    renderModule.buildScorecardSelectionLabel(0, 3, { previewPotentialScores: false }),
+    'Einer auswählen',
+  );
+});
+
+test('scorecard helper math can stay hidden until the game is done', () => {
+  assert.equal(typeof renderModule.getPotentialScoreText, 'function');
+  assert.equal(typeof renderModule.getUpperSumText, 'function');
+  assert.equal(typeof renderModule.getFinalSumText, 'function');
+
+  assert.equal(renderModule.getPotentialScoreText(18, { previewPotentialScores: false }), '—');
+  assert.equal(renderModule.getPotentialScoreText(18, { previewPotentialScores: true }), '18');
+
+  assert.equal(renderModule.getUpperSumText(42, 'score', { showUpperSectionSum: false }), '—');
+  assert.equal(renderModule.getUpperSumText(42, 'done', { showUpperSectionSum: false }), '42');
+  assert.equal(renderModule.getUpperSumText(42, 'score', { showUpperSectionSum: true }), '42');
+
+  assert.equal(renderModule.getFinalSumText(171, 'feedback', { showFinalSumBeforeDone: false }), '—');
+  assert.equal(renderModule.getFinalSumText(171, 'done', { showFinalSumBeforeDone: false }), '171');
+  assert.equal(renderModule.getFinalSumText(171, 'feedback', { showFinalSumBeforeDone: true }), '171');
+});
+
 test('game-complete encouragement scales with accuracy and bonus result', () => {
   assert.equal(typeof renderModule.getDoneEncouragement, 'function');
   assert.equal(

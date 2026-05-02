@@ -8,6 +8,9 @@ export const DEFAULT_SETTINGS = {
   twoPairsEnabled: true,
   soundEnabled: true,
   theme: 'system',
+  previewPotentialScores: true,
+  showUpperSectionSum: true,
+  showFinalSumBeforeDone: true,
 };
 
 export function saveGameState(snap) {
@@ -54,6 +57,9 @@ function normalizeSettings(raw) {
   if (!['fixed', 'sum'].includes(settings.fullHouseScore)) settings.fullHouseScore = DEFAULT_SETTINGS.fullHouseScore;
   settings.twoPairsEnabled = settings.twoPairsEnabled !== false;
   settings.soundEnabled = settings.soundEnabled !== false;
+  settings.previewPotentialScores = settings.previewPotentialScores !== false;
+  settings.showUpperSectionSum = settings.showUpperSectionSum !== false;
+  settings.showFinalSumBeforeDone = settings.showFinalSumBeforeDone !== false;
   if (!['system', 'light', 'dark'].includes(settings.theme)) settings.theme = DEFAULT_SETTINGS.theme;
   return settings;
 }

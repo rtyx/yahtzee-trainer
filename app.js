@@ -88,6 +88,9 @@ function initSettingsDialog() {
   const btnDeleteHistory = document.getElementById('btn-delete-history');
   const fullHouseInputs = [...document.querySelectorAll('input[name="full-house-score"]')];
   const twoPairsInput = document.getElementById('setting-two-pairs');
+  const previewPotentialInput = document.getElementById('setting-preview-potential');
+  const upperSumInput = document.getElementById('setting-upper-sum');
+  const finalSumInput = document.getElementById('setting-final-sum');
   const soundInput = document.getElementById('setting-sound');
   const themeInputs = [...document.querySelectorAll('input[name="theme"]')];
 
@@ -96,6 +99,9 @@ function initSettingsDialog() {
     fullHouseInputs.forEach(input => { input.checked = input.value === current.fullHouseScore; });
     themeInputs.forEach(input => { input.checked = input.value === current.theme; });
     twoPairsInput.checked = current.twoPairsEnabled;
+    previewPotentialInput.checked = current.previewPotentialScores;
+    upperSumInput.checked = current.showUpperSectionSum;
+    finalSumInput.checked = current.showFinalSumBeforeDone;
     soundInput.checked = current.soundEnabled;
   }
 
@@ -103,6 +109,9 @@ function initSettingsDialog() {
     return {
       fullHouseScore: fullHouseInputs.find(input => input.checked)?.value ?? settings.fullHouseScore,
       twoPairsEnabled: twoPairsInput.checked,
+      previewPotentialScores: previewPotentialInput.checked,
+      showUpperSectionSum: upperSumInput.checked,
+      showFinalSumBeforeDone: finalSumInput.checked,
       soundEnabled: soundInput.checked,
       theme: themeInputs.find(input => input.checked)?.value ?? settings.theme,
     };
