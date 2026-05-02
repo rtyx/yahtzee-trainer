@@ -183,6 +183,7 @@ function clearDiceAnimationTimers() {
 }
 
 export function render() {
+  syncGamePanelState();
   renderHeader();
   renderDice();
   renderPhaseLabel();
@@ -191,6 +192,10 @@ export function render() {
   renderScorecard();
   renderTurnHistory();
   document.dispatchEvent(new CustomEvent('yahtzee:render'));
+}
+
+function syncGamePanelState() {
+  document.getElementById('game-panel')?.classList.toggle('is-done', state.phase === 'done');
 }
 
 function renderHeader() {

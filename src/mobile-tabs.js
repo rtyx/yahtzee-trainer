@@ -15,11 +15,6 @@ function isMobile() {
   return mediaQuery?.matches ?? false;
 }
 
-function getRequiredTab() {
-  if (state.phase === 'done') return 'dice';
-  return null;
-}
-
 function setActiveTab(next, { userInitiated = false } = {}) {
   if (!TABS.includes(next)) return;
   if (userInitiated) {
@@ -28,8 +23,7 @@ function setActiveTab(next, { userInitiated = false } = {}) {
     }
     clearScoreReturnTimer();
   }
-  const required = getRequiredTab();
-  activeTab = userInitiated && required ? required : next;
+  activeTab = next;
   syncTabs();
 }
 
@@ -78,8 +72,6 @@ function syncTabs() {
 
   if (isMobile()) {
     scheduleScoreReturnIfNeeded();
-    const required = getRequiredTab();
-    if (required) activeTab = required;
     app.dataset.mobileTab = activeTab;
   } else {
     clearScoreReturnTimer();

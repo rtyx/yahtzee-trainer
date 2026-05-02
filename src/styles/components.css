@@ -1321,6 +1321,36 @@
     min-height: 0;
     margin-bottom: 0.8rem;
   }
+
+  .game-panel.is-done {
+    flex: 1;
+  }
+
+  .game-panel.is-done .dice-section,
+  .game-panel.is-done .controls {
+    display: none;
+  }
+
+  .game-panel.is-done .feedback-wrap {
+    flex: 1;
+    grid-template-rows: 1fr;
+    min-height: 0;
+  }
+
+  .game-panel.is-done .feedback-inner {
+    display: flex;
+    min-height: 0;
+  }
+
+  .game-panel.is-done .done-panel {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: center;
+    border: var(--border-thin) solid var(--rule);
+    border-radius: var(--radius-tight);
+  }
 }
 
 .turn-history,
