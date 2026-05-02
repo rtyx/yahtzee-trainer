@@ -7,7 +7,7 @@ import { settings, updateSettings, applyThemePreference, getDisabledCategoryMask
 import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from './src/game.js';
 import { render, renderAllGamesHistory } from './src/render.js';
 import { initKeyboardControls } from './src/keyboard.js';
-import { initMobileTabs } from './src/mobile-tabs.js';
+import { activateScorecardTab, initMobileTabs } from './src/mobile-tabs.js';
 import { initShakeToRoll } from './src/shake.js';
 
 function isUnplayedFirstTurn(saved) {
@@ -46,7 +46,7 @@ async function init() {
 
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('btn-reroll').addEventListener('click', handleKeepSubmit);
+  document.getElementById('btn-reroll').addEventListener('click', handlePrimaryAction);
   document.getElementById('btn-continue').addEventListener('click', handleContinue);
   document.getElementById('btn-restart').addEventListener('click', restartGame);
   initKeyboardControls();
@@ -85,6 +85,14 @@ async function init() {
 }
 
 init();
+
+function handlePrimaryAction() {
+  if (state.phase === 'score' && !state.diceAnimating) {
+    activateScorecardTab();
+    return;
+  }
+  handleKeepSubmit();
+}
 
 function initSettingsDialog(shakeToRoll) {
   const dialog = document.getElementById('settings-dialog');

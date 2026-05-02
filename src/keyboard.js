@@ -9,6 +9,7 @@ import {
   keepNextDieByValue,
   startGame,
 } from './game.js';
+import { activateScorecardTab } from './mobile-tabs.js';
 
 const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
 const toggleModifier = isMac ? 'Meta' : 'Control';
@@ -42,6 +43,7 @@ function getMainActionLabel() {
     const kept = state.kept.filter(Boolean).length;
     return kept === 5 ? 'Score now' : `Roll ${5 - kept} ${5 - kept === 1 ? 'die' : 'dice'}`;
   }
+  if (state.phase === 'score') return 'Score now';
   if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) return 'Continue';
   if (state.phase === 'done') return 'Play again';
   return null;
@@ -101,6 +103,8 @@ function runMainAction() {
   if (state.diceAnimating) return;
   if (state.phase === 'ready' || state.phase === 'keep') {
     handleKeepSubmit();
+  } else if (state.phase === 'score') {
+    activateScorecardTab();
   } else if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) {
     handleContinue();
   } else if (state.phase === 'done') {

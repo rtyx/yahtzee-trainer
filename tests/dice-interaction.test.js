@@ -17,15 +17,15 @@ test('score-phase dice remain interactive for visual keep toggles', () => {
   });
 });
 
-test('score phase keeps the roll button visible but disabled', () => {
+test('score phase turns the roll button into a score-now action', () => {
   assert.equal(typeof renderModule.getRollButtonState, 'function');
   assert.deepEqual(
     renderModule.getRollButtonState('score', [false, false, false, false, false], false),
     {
       visible: true,
-      disabled: true,
-      label: 'Select a category',
-      showShortcut: false,
+      disabled: false,
+      label: 'Score now',
+      showShortcut: true,
     },
   );
 });
