@@ -158,6 +158,10 @@
 
 .btn-restart,
 .btn-settings {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   background: var(--surface-tint);
   border: var(--border-thin) solid var(--rule);
   border-radius: var(--radius-tight);
@@ -189,6 +193,13 @@
   letter-spacing: var(--ls-caps);
   text-transform: uppercase;
   padding: 0.32rem 0.58rem;
+}
+
+.btn-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .btn-settings:hover {
@@ -1056,6 +1067,28 @@
 }
 
 @media (max-width: 580px) {
+  .btn-restart,
+  .btn-settings {
+    order: 1;
+    width: 2.35rem;
+    height: 2.35rem;
+    flex: 0 0 2.35rem;
+    padding: 0;
+    font-size: 1.05rem;
+  }
+
+  .btn-label {
+    display: none;
+  }
+
+  .dice-section {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    padding: clamp(1rem, 3vh, 1.5rem) var(--panel-pad-lg) clamp(0.8rem, 2vh, 1.1rem);
+  }
+
   .keyboard-help {
     left: 1rem;
     right: 1rem;
@@ -1218,6 +1251,10 @@
 @media (max-width: 580px) {
   #dice-board {
     --die-size: clamp(44px, 13.5vw, 54px);
+    flex: 1;
+    height: auto;
+    min-height: 0;
+    margin-bottom: 0.8rem;
   }
 }
 

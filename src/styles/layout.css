@@ -23,6 +23,7 @@ header {
 
 .brand {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: baseline;
   gap: 0.6rem;
@@ -36,6 +37,7 @@ header {
   letter-spacing: 0.01em;
   line-height: var(--lh-tight);
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .brand-sub {
@@ -88,8 +90,27 @@ main {
 
 @media (max-width: 580px) {
   #app {
+    height: 100dvh;
     min-height: 100dvh;
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(3.5rem + env(safe-area-inset-bottom));
+  }
+
+  #app[data-mobile-tab="dice"] {
+    overflow: hidden;
+  }
+
+  #app[data-mobile-tab="scorecard"] {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .brand {
+    order: 0;
+  }
+
+  .brand-mark {
+    font-size: clamp(0.95rem, 4.6vw, 1.1rem);
   }
 
   .brand-sub {
@@ -107,6 +128,9 @@ main {
   }
 
   .stats {
+    order: 2;
+    flex: 1 0 100%;
+    justify-content: space-between;
     gap: 0.875rem;
   }
 
@@ -158,12 +182,25 @@ main {
   }
 
   main {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    padding-bottom: 0;
+  }
+
+  #app[data-mobile-tab="scorecard"] main {
     display: block;
-    padding-bottom: 1.25rem;
   }
 
   .scorecard-panel {
     position: static;
+  }
+
+  .game-panel {
+    flex: 1;
+    min-height: 0;
   }
 
   #app[data-mobile-tab="scorecard"] .game-panel,
@@ -178,6 +215,7 @@ main {
 
   header {
     gap: 0.875rem;
+    flex: 0 0 auto;
     margin-bottom: 0;
   }
 }
