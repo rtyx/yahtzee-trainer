@@ -8,6 +8,7 @@ import { state, startGame, handleKeepSubmit, handleContinue, restartGame } from 
 import { render, renderAllGamesHistory } from './src/render.js';
 import { initKeyboardControls } from './src/keyboard.js';
 import { initMobileTabs } from './src/mobile-tabs.js';
+import { initShakeToRoll } from './src/shake.js';
 
 function isUnplayedFirstTurn(saved) {
   return saved
@@ -50,6 +51,10 @@ async function init() {
   document.getElementById('btn-restart').addEventListener('click', restartGame);
   initKeyboardControls();
   initMobileTabs();
+  initShakeToRoll({
+    onRoll: handleKeepSubmit,
+    canRoll: () => (state.phase === 'ready' || (state.phase === 'keep' && state.kept.some(kept => !kept))) && !state.diceAnimating,
+  });
   document.addEventListener('pointerdown', primeAudio, { once: true, passive: true, capture: true });
 
   initSettingsDialog();
