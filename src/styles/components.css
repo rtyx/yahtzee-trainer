@@ -945,7 +945,6 @@
 .controls {
   background: var(--surface-tint);
   border: var(--border-thin) solid var(--rule);
-  border-bottom: none;
   padding: 0.95rem var(--panel-pad-lg);
   display: flex;
   align-items: center;
@@ -1213,6 +1212,12 @@
   .die.rolling,
   .done-stamp {
     animation: none;
+  }
+}
+
+@media (max-width: 580px) {
+  #dice-board {
+    --die-size: clamp(44px, 13.5vw, 54px);
   }
 }
 

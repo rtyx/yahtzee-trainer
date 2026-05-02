@@ -57,7 +57,7 @@ function getScorecardKeyByCat() {
   return new Map(getScorecardKeyOrder(settings).map(([key, cat]) => [cat, key]));
 }
 
-const TRAY_X = [17, 33.5, 50, 66.5, 83];
+const TRAY_X = [12, 31, 50, 69, 88];
 const ARENA_SLOTS = [
   { x: 22, y: 24 }, { x: 45, y: 16 }, { x: 70, y: 25 },
   { x: 34, y: 48 }, { x: 61, y: 50 },

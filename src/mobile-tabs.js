@@ -2,26 +2,62 @@ import { state } from './game.js';
 
 const MOBILE_QUERY = '(max-width: 580px)';
 const TABS = ['scorecard', 'dice'];
+const SCORE_TO_DICE_DELAY_MS = 2000;
 
 let activeTab = 'dice';
 let mediaQuery = null;
 let initialized = false;
+let scoreReturnTimer = null;
+let scoreReturnToken = null;
+let scoreReturnHandledToken = null;
 
 function isMobile() {
   return mediaQuery?.matches ?? false;
 }
 
 function getRequiredTab() {
-  if (state.phase === 'score' && !state.diceAnimating) return 'scorecard';
-  if (state.phase === 'feedback' || state.phase === 'done') return 'dice';
+  if (state.phase === 'done') return 'dice';
   return null;
 }
 
 function setActiveTab(next, { userInitiated = false } = {}) {
   if (!TABS.includes(next)) return;
+  if (userInitiated) {
+    if (state.phase === 'feedback' && state.pendingCat != null) {
+      scoreReturnHandledToken = state.feedbackToken;
+    }
+    clearScoreReturnTimer();
+  }
   const required = getRequiredTab();
   activeTab = userInitiated && required ? required : next;
   syncTabs();
+}
+
+function clearScoreReturnTimer() {
+  if (scoreReturnTimer) clearTimeout(scoreReturnTimer);
+  scoreReturnTimer = null;
+  scoreReturnToken = null;
+}
+
+function scheduleScoreReturnIfNeeded() {
+  if (!isMobile()) {
+    clearScoreReturnTimer();
+    return;
+  }
+
+  const isScoreFeedback = state.phase === 'feedback' && state.pendingCat != null;
+  if (!isScoreFeedback) return;
+  if (scoreReturnToken === state.feedbackToken) return;
+  if (scoreReturnHandledToken === state.feedbackToken) return;
+
+  clearScoreReturnTimer();
+  scoreReturnToken = state.feedbackToken;
+  scoreReturnTimer = setTimeout(() => {
+    scoreReturnTimer = null;
+    scoreReturnHandledToken = scoreReturnToken;
+    scoreReturnToken = null;
+    setActiveTab('dice');
+  }, SCORE_TO_DICE_DELAY_MS);
 }
 
 function syncTabs() {
@@ -29,10 +65,12 @@ function syncTabs() {
   if (!app) return;
 
   if (isMobile()) {
+    scheduleScoreReturnIfNeeded();
     const required = getRequiredTab();
     if (required) activeTab = required;
     app.dataset.mobileTab = activeTab;
   } else {
+    clearScoreReturnTimer();
     delete app.dataset.mobileTab;
   }
 
