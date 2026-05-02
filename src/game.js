@@ -135,6 +135,10 @@ export function canToggleDieKeep(phase = state.phase, diceAnimating = state.dice
   return (phase === 'keep' || phase === 'score') && !diceAnimating;
 }
 
+export function shouldShowDecisionFeedback(config = settings) {
+  return config.showDecisionFeedback !== false;
+}
+
 export function toggleDieKeep(index) {
   if (!canToggleDieKeep()) return;
   if (index < 0 || index >= state.kept.length) return;
@@ -200,7 +204,12 @@ function doKeepSubmit() {
   state.decisions++;
   if (isOpt) state.correct++;
 
-  state.savedKept     = [...state.kept];
+  state.savedKept = [...state.kept];
+  if (!shouldShowDecisionFeedback()) {
+    proceedAfterKeep();
+    return;
+  }
+
   state.feedback      = buildKeepFeedback(isOpt, opt.keep, userKeep, opt.ev, userEV, state.openMask);
   state.phase         = 'feedback';
   state.afterFeedback = proceedAfterKeep;
@@ -245,7 +254,12 @@ export function handleScoreClick(cat) {
 
   state.decisions++;
   if (isOpt) state.correct++;
-  state.pendingCat    = cat;
+  state.pendingCat = cat;
+  if (!shouldShowDecisionFeedback()) {
+    proceedAfterScore();
+    return;
+  }
+
   state.feedback      = buildScoreFeedback(isOpt, opt.cat, cat, opt.score, userScore, opt.ev, userEV, state.openMask, state.upperCapped);
   state.phase         = 'feedback';
   state.afterFeedback = proceedAfterScore;

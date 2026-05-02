@@ -16,3 +16,9 @@ test('score-phase dice remain interactive for visual keep toggles', () => {
     locked: false,
   });
 });
+
+test('decision feedback pauses only when enabled', () => {
+  assert.equal(typeof gameModule.shouldShowDecisionFeedback, 'function');
+  assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: true }), true);
+  assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: false }), false);
+});

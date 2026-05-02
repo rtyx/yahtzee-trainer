@@ -55,6 +55,7 @@ test('settings round-trip and normalize invalid values', () => {
     previewPotentialScores: false,
     showUpperSectionSum: false,
     showFinalSumBeforeDone: false,
+    showDecisionFeedback: false,
   });
 
   assert.deepEqual(loadSettings(), {
@@ -65,6 +66,7 @@ test('settings round-trip and normalize invalid values', () => {
     previewPotentialScores: false,
     showUpperSectionSum: false,
     showFinalSumBeforeDone: false,
+    showDecisionFeedback: false,
   });
 
   saveSettings({
@@ -75,6 +77,7 @@ test('settings round-trip and normalize invalid values', () => {
     previewPotentialScores: true,
     showUpperSectionSum: true,
     showFinalSumBeforeDone: true,
+    showDecisionFeedback: true,
   });
 
   assert.deepEqual(loadSettings(), DEFAULT_SETTINGS);

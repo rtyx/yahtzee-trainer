@@ -21,8 +21,8 @@
         : preference;
     })();
   </script>
-  <script type="module" crossorigin src="./assets/index-mVHQ-Gnh.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CegkRgbe.css">
+  <script type="module" crossorigin src="./assets/index-DklQhSUG.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BFSLkbzR.css">
 </head>
 <body>
 
@@ -38,8 +38,14 @@
         <span class="brand-mark">Yahtzee Trainer</span>
         <span class="brand-sub">optimal play, explained</span>
       </div>
-      <button id="btn-restart" class="btn-restart">↺ New game</button>
-      <button id="btn-settings" class="btn-settings" aria-haspopup="dialog" aria-controls="settings-dialog">Settings</button>
+      <button id="btn-restart" class="btn-restart" aria-label="New game">
+        <span class="btn-symbol" aria-hidden="true">↺</span>
+        <span class="btn-label">New game</span>
+      </button>
+      <button id="btn-settings" class="btn-settings" aria-label="Settings" aria-haspopup="dialog" aria-controls="settings-dialog">
+        <span class="btn-symbol" aria-hidden="true">⚙</span>
+        <span class="btn-label">Settings</span>
+      </button>
       <div class="stats">
         <div class="stat">
           <span id="stat-turn-val" class="stat-value">1/13</span>
@@ -172,6 +178,13 @@
               <small>Rolls, marks, and feedback tones</small>
             </span>
             <input id="setting-sound" type="checkbox">
+          </label>
+          <label class="switch-row">
+            <span>
+              <strong>Decision feedback</strong>
+              <small>Pause after choices to show optimal-play notes</small>
+            </span>
+            <input id="setting-decision-feedback" type="checkbox">
           </label>
           <div class="theme-options" role="radiogroup" aria-label="Theme">
             <label><input type="radio" name="theme" value="system"><span>System</span></label>

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
   previewPotentialScores: true,
   showUpperSectionSum: true,
   showFinalSumBeforeDone: true,
+  showDecisionFeedback: true,
 };
 
 export function saveGameState(snap) {
@@ -60,6 +61,7 @@ function normalizeSettings(raw) {
   settings.previewPotentialScores = settings.previewPotentialScores !== false;
   settings.showUpperSectionSum = settings.showUpperSectionSum !== false;
   settings.showFinalSumBeforeDone = settings.showFinalSumBeforeDone !== false;
+  settings.showDecisionFeedback = settings.showDecisionFeedback !== false;
   if (!['system', 'light', 'dark'].includes(settings.theme)) settings.theme = DEFAULT_SETTINGS.theme;
   return settings;
 }

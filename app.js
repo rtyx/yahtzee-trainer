@@ -96,6 +96,7 @@ function initSettingsDialog() {
   const previewPotentialInput = document.getElementById('setting-preview-potential');
   const upperSumInput = document.getElementById('setting-upper-sum');
   const finalSumInput = document.getElementById('setting-final-sum');
+  const decisionFeedbackInput = document.getElementById('setting-decision-feedback');
   const soundInput = document.getElementById('setting-sound');
   const themeInputs = [...document.querySelectorAll('input[name="theme"]')];
 
@@ -107,6 +108,7 @@ function initSettingsDialog() {
     previewPotentialInput.checked = current.previewPotentialScores;
     upperSumInput.checked = current.showUpperSectionSum;
     finalSumInput.checked = current.showFinalSumBeforeDone;
+    decisionFeedbackInput.checked = current.showDecisionFeedback;
     soundInput.checked = current.soundEnabled;
   }
 
@@ -117,6 +119,7 @@ function initSettingsDialog() {
       previewPotentialScores: previewPotentialInput.checked,
       showUpperSectionSum: upperSumInput.checked,
       showFinalSumBeforeDone: finalSumInput.checked,
+      showDecisionFeedback: decisionFeedbackInput.checked,
       soundEnabled: soundInput.checked,
       theme: themeInputs.find(input => input.checked)?.value ?? settings.theme,
     };
