@@ -569,6 +569,10 @@
   color: var(--hand-filled);
 }
 
+.scorecard-panel.scoring .sc-data-row.used .sc-score-cell {
+  color: var(--ink-light);
+}
+
 .sc-data-row.clickable {
   cursor: pointer;
   outline: none;
