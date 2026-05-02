@@ -131,8 +131,12 @@ export function handleKeepSubmit() {
   }
 }
 
+export function canToggleDieKeep(phase = state.phase, diceAnimating = state.diceAnimating) {
+  return (phase === 'keep' || phase === 'score') && !diceAnimating;
+}
+
 export function toggleDieKeep(index) {
-  if (state.phase !== 'keep' || state.diceAnimating) return;
+  if (!canToggleDieKeep()) return;
   if (index < 0 || index >= state.kept.length) return;
 
   state.kept[index] = !state.kept[index];

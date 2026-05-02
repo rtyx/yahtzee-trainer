@@ -161,10 +161,18 @@ function renderHeader() {
   document.getElementById('stat-acc-val').textContent   = acc;
 }
 
+export function getDiceInteractionState(phase = state.phase, diceAnimating = state.diceAnimating) {
+  const interactive = (phase === 'keep' || phase === 'score') && !diceAnimating;
+  return {
+    interactive,
+    locked: !interactive,
+  };
+}
+
 function renderDice() {
   const container = document.getElementById('dice-container');
   ensureVisualDice();
-  const locked = state.phase === 'ready' || state.phase === 'score' || state.phase === 'feedback' || state.phase === 'done' || state.diceAnimating;
+  const { locked } = getDiceInteractionState();
 
   for (let i = 0; i < 5; i++) {
     let die = container.querySelector(`.die[data-index="${i}"]`);
