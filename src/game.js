@@ -102,7 +102,6 @@ export function handleKeepSubmit() {
   if (state.phase === 'ready' && !state.diceAnimating) {
     playRoll(5);
     state.dice        = rollAll();
-    state.displayDice = [...state.dice];
     state.phase       = 'keep';
     state.hasRolled   = true;
     state.readyInTray = false;
@@ -117,15 +116,7 @@ export function handleKeepSubmit() {
 
   if (n < 5) {
     playRoll(5 - n);
-    const diceEls = [...document.querySelectorAll('.die:not(.kept)')];
-    diceEls.forEach(el => el.classList.add('pre-roll'));
-    const btn = document.getElementById('btn-reroll');
-    btn.disabled = true;
-    setTimeout(() => {
-      diceEls.forEach(el => el.classList.remove('pre-roll'));
-      btn.disabled = false;
-      doKeepSubmit();
-    }, 340);
+    doKeepSubmit();
   } else {
     doKeepSubmit();
   }

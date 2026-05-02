@@ -33,6 +33,18 @@ function setActiveTab(next, { userInitiated = false } = {}) {
   syncTabs();
 }
 
+export function activateScorecardTab() {
+  setActiveTab('scorecard', { userInitiated: true });
+  requestAnimationFrame(() => {
+    const firstScoreRow = document.querySelector('.scorecard-panel.scoring .sc-data-row.clickable');
+    if (firstScoreRow instanceof HTMLElement) {
+      firstScoreRow.focus({ preventScroll: true });
+      return;
+    }
+    document.getElementById('tab-scorecard')?.focus({ preventScroll: true });
+  });
+}
+
 function clearScoreReturnTimer() {
   if (scoreReturnTimer) clearTimeout(scoreReturnTimer);
   scoreReturnTimer = null;

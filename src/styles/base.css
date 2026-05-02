@@ -74,14 +74,6 @@ body {
   }
 }
 
-@keyframes dice-shake {
-  0% { transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1); }
-  22% { transform: translate(-50%, -56%) rotate(calc(var(--die-rot) - 12deg)) scale(1.01); }
-  48% { transform: translate(-50%, -48%) rotate(calc(var(--die-rot) + 15deg)) scale(0.99); }
-  72% { transform: translate(-50%, -54%) rotate(calc(var(--die-rot) - 8deg)) scale(1); }
-  100% { transform: translate(-50%, -50%) rotate(var(--die-rot)) scale(1); }
-}
-
 @keyframes dice-tumble {
   0% {
     transform: translate(-50%, -50%) rotate(calc(var(--die-rot) - 34deg)) scale(0.98);

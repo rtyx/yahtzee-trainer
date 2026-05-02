@@ -17,6 +17,19 @@ test('score-phase dice remain interactive for visual keep toggles', () => {
   });
 });
 
+test('score phase keeps the roll button visible but disabled', () => {
+  assert.equal(typeof renderModule.getRollButtonState, 'function');
+  assert.deepEqual(
+    renderModule.getRollButtonState('score', [false, false, false, false, false], false),
+    {
+      visible: true,
+      disabled: true,
+      label: 'Select a category',
+      showShortcut: false,
+    },
+  );
+});
+
 test('decision feedback pauses only when enabled', () => {
   assert.equal(typeof gameModule.shouldShowDecisionFeedback, 'function');
   assert.equal(gameModule.shouldShowDecisionFeedback({ showDecisionFeedback: true }), true);

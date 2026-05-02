@@ -39,6 +39,43 @@ export function getScorecardBonusState(upperScore, phase = 'done', config = sett
   };
 }
 
+export function getRollButtonState(phase, kept, diceAnimating = false) {
+  if (phase === 'ready') {
+    return {
+      visible: true,
+      disabled: diceAnimating,
+      label: 'Roll 5 dice',
+      showShortcut: true,
+    };
+  }
+
+  if (phase === 'keep') {
+    const keptCount = kept.filter(Boolean).length;
+    return {
+      visible: true,
+      disabled: diceAnimating,
+      label: keptCount === 5 ? 'Score now' : `Roll ${5 - keptCount} ${5 - keptCount === 1 ? 'die' : 'dice'}`,
+      showShortcut: true,
+    };
+  }
+
+  if (phase === 'score') {
+    return {
+      visible: true,
+      disabled: diceAnimating,
+      label: 'Score now',
+      showShortcut: true,
+    };
+  }
+
+  return {
+    visible: false,
+    disabled: false,
+    label: '',
+    showShortcut: false,
+  };
+}
+
 export function buildScorecardSelectionLabel(cat, points, config = settings) {
   if (!config.previewPotentialScores) return `${CAT_NAMES[cat]} auswählen`;
   return `${CAT_NAMES[cat]} auswählen, ${points} Punkte eintragen`;
@@ -84,6 +121,7 @@ const ARENA_SLOTS = [
 ];
 let layoutSeed = 0;
 let diceAnimationTimer = null;
+let diceShuffleTimer = null;
 
 function makeVisualDie(i) {
   return { zone: 'tray', x: TRAY_X[i], y: 86, rot: 0, seed: 0 };
@@ -138,8 +176,10 @@ export function layoutDiceForState() {
 
 function clearDiceAnimationTimers() {
   if (diceAnimationTimer) clearTimeout(diceAnimationTimer);
+  if (diceShuffleTimer) clearInterval(diceShuffleTimer);
   diceAnimationTimer = null;
-  document.querySelectorAll('.die.rolling, .die.pre-roll').forEach(el => el.classList.remove('rolling', 'pre-roll'));
+  diceShuffleTimer = null;
+  document.querySelectorAll('.die.rolling').forEach(el => el.classList.remove('rolling'));
 }
 
 export function render() {
@@ -244,23 +284,17 @@ function renderPhaseLabel() {
 function renderButtons() {
   const btnRoll = document.getElementById('btn-reroll');
   const btnCont = document.getElementById('btn-continue');
-  btnRoll.classList.add('hidden');
   btnCont.classList.add('hidden');
   btnCont.className = 'btn btn-outline hidden';
-  btnRoll.disabled = false;
+  const rollButton = getRollButtonState(state.phase, state.kept, state.diceAnimating);
+  btnRoll.classList.toggle('hidden', !rollButton.visible);
+  btnRoll.disabled = rollButton.disabled;
+  btnRoll.innerHTML = rollButton.showShortcut
+    ? `${rollButton.label} <span class="keycap action-keycap">Space</span>`
+    : rollButton.label;
   btnCont.disabled = false;
 
-  if (state.phase === 'ready') {
-    btnRoll.classList.remove('hidden');
-    btnRoll.innerHTML = `Roll 5 dice <span class="keycap action-keycap">Space</span>`;
-    btnRoll.disabled = state.diceAnimating;
-  } else if (state.phase === 'keep') {
-    btnRoll.classList.remove('hidden');
-    const n = state.kept.filter(Boolean).length;
-    const label = n === 5 ? 'Score now' : `Roll ${5 - n} ${5 - n === 1 ? 'die' : 'dice'}`;
-    btnRoll.innerHTML = `${label} <span class="keycap action-keycap">Space</span>`;
-    btnRoll.disabled = state.diceAnimating;
-  } else if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) {
+  if (state.phase === 'feedback' && state.feedback && !state.feedback.correct) {
     btnCont.className = 'btn btn-gold';
     btnCont.classList.remove('hidden');
     btnCont.innerHTML = `Got it <span class="keycap action-keycap">Space</span>`;
@@ -471,6 +505,7 @@ export function animateNewDice(prevKept = null) {
   state.diceAnimating = true;
   layoutSeed++;
   rolling.forEach(i => placeDie(i, arenaLayout(i)));
+  shuffleRollingFaces(rolling);
   renderDice();
   renderButtons();
   renderPhaseLabel();
@@ -484,7 +519,14 @@ export function animateNewDice(prevKept = null) {
     el.classList.add('rolling');
   });
 
+  diceShuffleTimer = setInterval(() => {
+    shuffleRollingFaces(rolling);
+    renderDice();
+  }, 82);
+
   diceAnimationTimer = setTimeout(() => {
+    if (diceShuffleTimer) clearInterval(diceShuffleTimer);
+    diceShuffleTimer = null;
     rolling.forEach(i => { state.displayDice[i] = state.dice[i]; });
     document.querySelectorAll('.die.rolling').forEach(el => el.classList.remove('rolling'));
     state.diceAnimating = false;
@@ -494,4 +536,11 @@ export function animateNewDice(prevKept = null) {
     renderPhaseLabel();
     renderScorecard();
   }, 620);
+}
+
+function shuffleRollingFaces(rolling) {
+  rolling.forEach(i => {
+    const current = state.displayDice[i] ?? state.dice[i] ?? 1;
+    state.displayDice[i] = (current % 6) + 1;
+  });
 }

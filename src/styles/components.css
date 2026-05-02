@@ -92,13 +92,20 @@
   transform: scale(0.97);
 }
 
+.btn:disabled {
+  cursor: default;
+  filter: saturate(0.75);
+  opacity: 0.62;
+  transform: none;
+}
+
 .btn-gold,
 .btn-play-again {
   background: var(--ink);
   color: var(--sheet);
 }
 
-.btn-gold:hover,
+.btn-gold:not(:disabled):hover,
 .btn-play-again:hover {
   filter: brightness(1.18);
 }
@@ -914,11 +921,6 @@
   box-shadow: var(--shadow-die-rest);
 }
 
-.die.pre-roll {
-  animation: dice-shake 0.34s ease-in-out;
-  cursor: not-allowed;
-}
-
 .die.rolling {
   animation: dice-tumble 0.62s var(--ease-expo);
 }
@@ -1233,7 +1235,6 @@
     transition: background 0.15s, outline-color 0.15s, box-shadow 0.15s;
   }
 
-  .die.pre-roll,
   .die.rolling,
   .done-stamp {
     animation: none;
