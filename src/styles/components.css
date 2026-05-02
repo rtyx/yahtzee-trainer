@@ -202,6 +202,17 @@
   line-height: 1;
 }
 
+.settings-tune-icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .btn-settings:hover {
   color: var(--ink);
   border-color: var(--ink-light);
